@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Actualizar Ticket</title>
+  <link rel="stylesheet" href="../static/css/ticket.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Actualizar Ticket</h1>
+
+    <form id="formBuscarActualizar">
+      <div class="form-group">
+        <label for="turnoBuscar">Número de Turno:</label>
+        <input type="text" id="turnoBuscar" name="turnoBuscar" class="text-box">
+      </div>
+      <div class="form-actions">
+        <button type="submit">Buscar Ticket</button>
+      </div>
+    </form>
+
+    <form id="formActualizar" style="display:none; margin-top:20px;">
+      <div class="form-group">
+        <label for="nombreActualizar">Nombre completo:</label>
+        <input type="text" id="nombreActualizar" name="nombreActualizar" class="text-box">
+      </div>
+      <div class="form-group">
+        <label for="nivelActualizar">Nivel:</label>
+        <select id="nivelActualizar" name="nivelActualizar" class="combo-box">
+          <option value="">Seleccione</option>
+          <option value="primaria">Primaria</option>
+          <option value="secundaria">Secundaria</option>
+          <option value="bachillerato">Bachillerato</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button type="submit">Actualizar Ticket</button>
+        <button type="button" onclick="window.location.href='../index.html'">Regresar</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    $("#formBuscarActualizar").on("submit", function(e){
+      e.preventDefault();
+      // Simular búsqueda
+      $("#nombreActualizar").val("Juan Pérez");
+      $("#nivelActualizar").val("Secundaria");
+      $("#formActualizar").show();
+    });
+
+    $("#formActualizar").on("submit", function(e){
+      e.preventDefault();
+      alert("Ticket actualizado correctamente 🎉");
+    });
+  </script>
+</body>
+</html>

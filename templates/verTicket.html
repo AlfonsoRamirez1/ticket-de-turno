@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ver Ticket</title>
+  <link rel="stylesheet" href="../css/ticket.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Ver Ticket</h1>
+
+    <form id="formVerTicket">
+      <div class="form-group">
+        <label for="turno">Número de Turno:</label>
+        <input type="text" id="turno" name="turno" class="text-box">
+      </div>
+
+      <div class="form-group">
+        <label for="curp">CURP del alumno:</label>
+        <input type="text" id="curp" name="curp" class="text-box">
+      </div>
+
+      <div class="form-actions">
+        <button type="submit">Buscar Ticket</button>
+        <button type="button" onclick="window.location.href='../index.html'">Regresar</button>
+      </div>
+    </form>
+
+    <div id="ticketInfo" style="display:none; margin-top:20px;">
+      <h3>Información del Ticket</h3>
+      <p><strong>Nombre:</strong> <span id="infoNombre"></span></p>
+      <p><strong>CURP:</strong> <span id="infoCurp"></span></p>
+      <p><strong>Nivel:</strong> <span id="infoNivel"></span></p>
+      <p><strong>Municipio:</strong> <span id="infoMunicipio"></span></p>
+      <p><strong>Asunto:</strong> <span id="infoAsunto"></span></p>
+      <p><strong>Turno:</strong> <span id="infoTurno"></span></p>
+    </div>
+
+  </div>
+
+  <script>
+    $("#formVerTicket").on("submit", function(e){
+      e.preventDefault();
+      // Aquí simularías la consulta con backend
+      const turno = $("#turno").val();
+      const curp = $("#curp").val();
+
+      // Ejemplo de respuesta
+      $("#infoNombre").text("Juan Pérez");
+      $("#infoCurp").text(curp);
+      $("#infoNivel").text("Secundaria");
+      $("#infoMunicipio").text("Municipio 1");
+      $("#infoAsunto").text("Inscripción");
+      $("#infoTurno").text(turno || "12345");
+
+      $("#ticketInfo").show();
+    });
+  </script>
+</body>
+</html>
