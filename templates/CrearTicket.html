@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Ticket de Turno</title>
-  <link rel="stylesheet" href="../static/css/ticket.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket.css') }}">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.20.0/dist/jquery.validate.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.20.0/dist/additional-methods.min.js"></script>
-</head>
+  </head>
 <body>
   <div class="container">
     <header class="top-header">
@@ -17,18 +15,18 @@
 
     <h1>Ticket de Turno</h1>
 
-    <form id="formTurno">
+    <form id="formTurno" method="POST" action="{{ url_for('crear_post') }}">
       <div class="form-group">
         <div class="form-grid">
           <div class="form-field field-4">
             <label for="nombreCompleto">Nombre completo de quien realizará el trámite:</label>
-            <input type="text" id="nombreCompleto" name="nombreCompleto" class="text-box">
+            <input type="text" id="nombreCompleto" name="nombreCompleto" class="text-box" required>
             <span class="error-message"></span>
           </div>
-          
+
           <div class="form-field field-2">
             <label for="curp">CURP:</label>
-            <input type="text" id="curp" name="curp" class="text-box">
+            <input type="text" id="curp" name="curp" class="text-box" required>
             <span class="error-message"></span>
           </div>
         </div>
@@ -37,26 +35,25 @@
       <div class="form-group">
         <div class="form-grid">
           <div class="form-field field-2">
-            <label for="nombre">Nombre:</label>
-            <input type="text" id="nombre" name="nombre" class="text-box">
+            <label for="nombre">Nombre (alumno):</label>
+            <input type="text" id="nombre" name="nombre" class="text-box" required>
             <span class="error-message"></span>
           </div>
-          
+
           <div class="form-field field-2">
-            <label for="paterno">Paterno:</label>
-            <input type="text" id="paterno" name="paterno" class="text-box">
+            <label for="paterno">Paterno (alumno):</label>
+            <input type="text" id="paterno" name="paterno" class="text-box" required>
             <span class="error-message"></span>
           </div>
-          
+
           <div class="form-field field-2">
-            <label for="materno">Materno:</label>
-            <input type="text" id="materno" name="materno" class="text-box">
+            <label for="materno">Materno (alumno):</label>
+            <input type="text" id="materno" name="materno" class="text-box" required>
             <span class="error-message"></span>
           </div>
         </div>
       </div>
 
-      <!-- Teléfono, Celular, Correo -->
       <div class="form-group">
         <div class="form-grid">
           <div class="form-field field-2">
@@ -64,76 +61,81 @@
             <input type="tel" id="telefono" name="telefono" class="text-box">
             <span class="error-message"></span>
           </div>
-          
+
           <div class="form-field field-2">
             <label for="celular">Celular:</label>
-            <input type="tel" id="celular" name="celular" class="text-box">
+            <input type="tel" id="celular" name="celular" class="text-box" required>
             <span class="error-message"></span>
           </div>
-          
+
           <div class="form-field field-2">
             <label for="correo">Correo:</label>
-            <input type="email" id="correo" name="correo" class="text-box">
+            <input type="email" id="correo" name="correo" class="text-box" required>
             <span class="error-message"></span>
           </div>
         </div>
       </div>
 
-      <!-- Nivel educativo -->
       <div class="form-group">
         <div class="form-grid">
           <div class="form-field field-6">
             <label for="nivel">¿Nivel al que desea ingresar o que ya cursa el alumno?</label>
-            <select id="nivel" name="nivel" class="combo-box">
+            <select id="nivel" name="nivel" class="combo-box" required>
               <option value="">Seleccione una opción</option>
-              <option value="primaria">Primaria</option>
-              <option value="secundaria">Secundaria</option>
-              <option value="bachillerato">Bachillerato</option>
+              {% for nivel in niveles %}
+                <option value="{{ nivel.id_nivel }}">{{ nivel.nivel }}</option>
+              {% endfor %}
             </select>
             <span class="error-message"></span>
           </div>
         </div>
       </div>
 
-      <!-- Municipio -->
       <div class="form-group">
         <div class="form-grid">
-          <div class="form-field field-6">
+          <div class="form-field field-3">
             <label for="municipio">Municipio donde desea estudie el alumno:</label>
-            <select id="municipio" name="municipio" class="combo-box">
+            <select id="municipio" name="municipio" class="combo-box" required>
               <option value="">Seleccione un municipio</option>
-              <option value="1">Municipio 1</option>
-              <option value="2">Municipio 2</option>
+              {% for municipio in municipios %}
+                <option value="{{ municipio.id_municipio }}">{{ municipio.municipio }}</option>
+              {% endfor %}
+            </select>
+            <span class="error-message"></span>
+          </div>
+
+          <div class="form-field field-3">
+            <label for="oficina">Oficina Regional:</label>
+            <select id="oficina" name="oficina" class="combo-box" required disabled>
+              <option value="">Seleccione un municipio primero</option>
             </select>
             <span class="error-message"></span>
           </div>
         </div>
       </div>
 
-      <!-- Asunto -->
       <div class="form-group">
         <div class="form-grid">
           <div class="form-field field-6">
             <label for="asunto">Seleccione el asunto que va a tratar:</label>
-            <select id="asunto" name="asunto" class="combo-box">
+            <select id="asunto" name="asunto" class="combo-box" required>
               <option value="">Seleccione un asunto</option>
-              <option value="inscripcion">Inscripción</option>
-              <option value="constancia">Constancia</option>
-              <option value="otros">Otros</option>
+              {% for asunto in asuntos %}
+                <option value="{{ asunto.id_asunto }}">{{ asunto.descripcion }}</option>
+              {% endfor %}
             </select>
             <span class="error-message"></span>
           </div>
         </div>
       </div>
-       
+
       <div class="form-group">
        <div class="form-actions">
         <button type="submit" >Generar Turno</button>
       </div>
 
       <div class="form-actions">
-        <button type="button" id="btnRegresar">Regresar</button>
-
+        <button type="button" id="btnRegresar" onclick="window.location.href='{{ url_for('root') }}'">Regresar</button>
       </div>
 
       <div id="successMessage" style="display:none;">
@@ -143,6 +145,7 @@
     </form>
   </div>
 
-  <script src="../static/js/validador.js"></script>
+  <script src="{{ url_for('static', filename='js/validador.js', v=cache_buster) }}"></script>
+
 </body>
 </html>

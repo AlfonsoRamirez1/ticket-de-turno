@@ -1,239 +1,163 @@
 $(function () {
-  const $form = $("#formTurno");
-  const $btn = $form.find("button[type=submit]");
-  const $success = $("#successMessage");
+    // --- REFERENCIAS A ELEMENTOS ---
+    const $form = $("#formTurno");
+    const $btnSubmit = $form.find("button[type=submit]");
+    const $municipio = $("#municipio");
+    const $oficina = $("#oficina");
 
-  // Función para validar CURP
-  function curpDateCheck(curp) {
-    const re = /^([A-Z]{4})(\d{2})(\d{2})(\d{2})([HM])(AS|BC|BS|CC|CL|CM|CS|CH|DF|DG|GT|GR|HG|JC|MC|MN|MS|NT|NL|OC|PL|QT|QR|SP|SL|SR|TC|TS|TL|VZ|YN|ZS|NE)([A-Z]{3})([A-Z0-9])(\d)$/i;
-    const m = curp.toUpperCase().replace(/\s+/g, "").match(re);
-    if (!m) return { ok: false, reason: "Formato CURP inválido (estructura incorrecta)." };
+    // --- FUNCIONES DE VALIDACIÓN (DE TU validador.js ORIGINAL ) ---
 
-    const yy = parseInt(m[2], 10);
-    const mm = parseInt(m[3], 10);
-    const dd = parseInt(m[4], 10);
-    const year = yy <= 29 ? 2000 + yy : 1900 + yy;
-    const date = new Date(year, mm - 1, dd);
-    if (date.getFullYear() !== year || date.getMonth() + 1 !== mm || date.getDate() !== dd) {
-      return { ok: false, reason: "Fecha inválida en la CURP (YYMMDD incorrecto)." };
-    }
-    const sexo = m[5].toUpperCase();
-    if (!/^[HM]$/.test(sexo)) return { ok: false, reason: "Sexo inválido en CURP (debe ser H o M)." };
-    return { ok: true };
-  }
+    function curpDateCheck(curp) {
+        const re = /^([A-Z]{4})(\d{2})(\d{2})(\d{2})([HM])(AS|BC|BS|CC|CL|CM|CS|CH|DF|DG|GT|GR|HG|JC|MC|MN|MS|NT|NL|OC|PL|QT|QR|SP|SL|SR|TC|TS|TL|VZ|YN|ZS|NE)([A-Z]{3})([A-Z0-9])(\d)$/i;
+        const m = (curp || "").toUpperCase().replace(/\s+/g, "").match(re);
+        if (!m) return { ok: false, reason: "Formato CURP inválido." };
 
-  // Función para validar email
-  function validateEmailAdvanced(val) {
-    if (!val) return { ok: false, reason: "Correo vacío." };
-    if ((val.match(/@/g) || []).length !== 1) return { ok: false, reason: "El correo debe contener exactamente un @." };
-    const [local, domain] = val.split("@");
-    if (!local) return { ok: false, reason: "La parte antes de @ está vacía." };
-    if (!domain) return { ok: false, reason: "La parte después de @ está vacía." };
-    if (local.length > 64) return { ok: false, reason: "La parte local no puede exceder 64 caracteres." };
-    if (/^\./.test(local) || /\.$/.test(local)) return { ok: false, reason: "La parte local no puede empezar/terminar con punto." };
-    if (/\.\./.test(local)) return { ok: false, reason: "La parte local no puede tener puntos consecutivos." };
-    if (!/[A-Za-zÁÉÍÓÚáéíóúÑñ]/.test(local)) return { ok: false, reason: "La parte local debe contener al menos una letra." };
-    if (/\.\./.test(domain)) return { ok: false, reason: "El dominio no puede tener puntos consecutivos." };
-    if (domain.split(".").length < 2) return { ok: false, reason: "El dominio debe contener al menos un punto (ej: dominio.com)." };
-    const tld = domain.split(".").pop();
-    if (!/^[A-Za-z]{2,24}$/.test(tld)) return { ok: false, reason: "TLD inválido (ej: com, mx)." };
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) return { ok: false, reason: "Formato general inválido." };
-    return { ok: true };
-  }
+        const yy = parseInt(m[2], 10);
+        const mm = parseInt(m[3], 10);
+        const dd = parseInt(m[4], 10);
+        const year = yy <= 29 ? 2000 + yy : 1900 + yy;
+        const date = new Date(year, mm - 1, dd);
+        if (date.getFullYear() !== year || date.getMonth() + 1 !== mm || date.getDate() !== dd) {
+            return { ok: false, reason: "Fecha inválida en la CURP." };
+        }
+        const sexo = m[5].toUpperCase();
+        if (!/^[HM]$/.test(sexo)) return { ok: false, reason: "Sexo inválido en CURP." };
+        return { ok: true };
+    }
 
-  // Métodos personalizados para jQuery Validate
-  $.validator.addMethod("nameCheck", function (value, element) {
-    const v = value.trim();
-    if (!v) {
-      return false;
+    function validateEmailAdvanced(val) {
+        if (!val) return { ok: false, reason: "El correo es requerido." };
+        if ((val.match(/@/g) || []).length !== 1) return { ok: false, reason: "El correo debe contener un @." };
+        const [local, domain] = val.split("@");
+        if (!local || !domain) return { ok: false, reason: "Formato inválido (ej: usuario@dominio.com)." };
+        if (/\.\./.test(local) || /\.\./.test(domain)) return { ok: false, reason: "No debe tener puntos consecutivos." };
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) return { ok: false, reason: "Formato general inválido." };
+        return { ok: true };
     }
-    if (/^\d+$/.test(v)) {
-      return false;
-    }
-    if (/^[^A-Za-z0-9ÁÉÍÓÚáéíóúÑñ]+$/.test(v)) {
-      return false;
-    }
-    if (/ {2,}/.test(v)) {
-      return false;
-    }
-    if (/^(.)\1{3,}$/.test(v.replace(/\s+/g, ""))) {
-      return false;
-    }
-    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ\s'\-]{2,}$/.test(v)) {
-      return false;
-    }
-    return true;
-  }, "Formato de nombre inválido");
 
-  $.validator.addMethod("curpCheck", function (value, element) {
-    const raw = (value || "").toUpperCase().replace(/\s+/g, "");
-    const basicRe = /^[A-Z]{4}\d{6}[HM][A-Z]{2}[A-Z]{3}[A-Z0-9]\d$/i;
-    if (!basicRe.test(raw)) {
-      return false;
+    function nameCheck(value) {
+        const v = (value || "").trim();
+        if (!v) return { ok: false, reason: "Este campo es requerido." };
+        if (v.length < 2) return { ok: false, reason: "Mínimo 2 caracteres." };
+        if (/^\d+$/.test(v)) return { ok: false, reason: "No puede ser solo números." };
+        if (/ {2,}/.test(v)) return { ok: false, reason: "No debe tener espacios consecutivos." };
+        if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñüÜ\s'\-]{2,}$/.test(v)) return { ok: false, reason: "Formato de nombre inválido." };
+        return { ok: true };
     }
-    const res = curpDateCheck(raw);
-    if (!res.ok) {
-      return false;
+
+    function phoneCheck(value) { // Para teléfono (opcional)
+        const digits = (value || "").replace(/\D/g, "");
+        if (digits.length === 0) return { ok: true }; // Es válido si está vacío
+        if (digits.length < 7 || digits.length > 10) return { ok: false, reason: "Teléfono inválido (7-10 dígitos)." };
+        if (/^0+$/.test(digits)) return { ok: false, reason: "No puede ser solo ceros." };
+        return { ok: true };
     }
-    return true;
-  }, "CURP inválida");
 
-  $.validator.addMethod("phoneCheck", function (value, element) {
-    const digits = value.replace(/\D/g, "");
-    if (digits.length < 7 || digits.length > 10) {
-      return false;
+    function celularCheck(value) { // Para celular (obligatorio)
+        const digits = (value || "").replace(/\D/g, "");
+        if (digits.length !== 10) return { ok: false, reason: "Celular inválido (10 dígitos)." };
+        if (/^(\d)\1{9}$/.test(digits)) return { ok: false, reason: "No pueden ser números repetidos." };
+        return { ok: true };
     }
-    if (/^0+$/.test(digits)) {
-      return false;
+
+    // --- FUNCIÓN MAESTRA DE VALIDACIÓN ---
+    function checkFormValidity() {
+        let isFormValid = true;
+
+        // Función para marcar/desmarcar error y mostrar mensaje
+        const markError = (selector, validationResult) => {
+            const $el = $(selector);
+            const $errorSpan = $el.next('.error-message');
+
+            if (validationResult.ok) {
+                $el.removeClass('error');
+                $errorSpan.text('');
+            } else {
+                $el.addClass('error');
+                $errorSpan.text(validationResult.reason);
+                isFormValid = false; // Si CUALQUIER validación falla, el formulario es inválido
+            }
+        };
+
+        // --- Ejecutar todas las validaciones ---
+        markError("#nombreCompleto", nameCheck($("#nombreCompleto").val()));
+        markError("#nombre", nameCheck($("#nombre").val()));
+        markError("#paterno", nameCheck($("#paterno").val()));
+        markError("#materno", nameCheck($("#materno").val()));
+        markError("#curp", curpDateCheck($("#curp").val()));
+        markError("#telefono", phoneCheck($("#telefono").val()));
+        markError("#celular", celularCheck($("#celular").val()));
+        markError("#correo", validateEmailAdvanced($("#correo").val()));
+
+        // Validar Selects
+        markError("#nivel", $("#nivel").val() ? { ok: true } : { ok: false, reason: "Por favor seleccione un nivel." });
+        markError("#municipio", $municipio.val() ? { ok: true } : { ok: false, reason: "Por favor seleccione un municipio." });
+        markError("#asunto", $("#asunto").val() ? { ok: true } : { ok: false, reason: "Por favor seleccione un asunto." });
+
+        // Validar Oficina
+        const oficinaVal = $oficina.val();
+        const oficinaDisabled = $oficina.is(':disabled');
+        if (oficinaDisabled) {
+             markError("#oficina", { ok: false, reason: "Seleccione un municipio para ver oficinas." });
+             isFormValid = false;
+        } else if (!oficinaVal) {
+             markError("#oficina", { ok: false, reason: "Por favor seleccione una oficina." });
+             isFormValid = false;
+        } else {
+             markError("#oficina", { ok: true });
+        }
+
+        // --- Decisión Final ---
+        $btnSubmit.prop('disabled', !isFormValid);
     }
-    return true;
-  }, "Teléfono inválido");
 
-  $.validator.addMethod("celularCheck", function (value, element) {
-    const digits = (value || "").replace(/\D/g, "");
-    if (digits.length !== 10) {
-      return false;
-    }
-    if (/^(\d)\1{9}$/.test(digits)) {
-      return false;
-    }
-    return true;
-  }, "Celular inválido");
+    // --- LÓGICA DE CARGA DE OFICINAS ---
+    $municipio.on('change', function() {
+        const idMunicipio = $(this).val();
 
-  $.validator.addMethod("emailAdvanced", function (value, element) {
-    const res = validateEmailAdvanced(value);
-    if (!res.ok) {
-      return false;
-    }
-    return true;
-  }, "Correo inválido");
+        $oficina.prop('disabled', true).html('<option value="">Cargando...</option>');
 
-  // Configuración de validación del formulario
-  const validator = $form.validate({
-    rules: {
-      nombreCompleto: { 
-        required: true,
-        nameCheck: true, 
-        minlength: 5 
-      },
-      curp: { 
-        required: true, 
-        curpCheck: true 
-      },
-      nombre: { 
-        required: true, 
-        nameCheck: true, 
-        minlength: 2 
-      },
-      paterno: { 
-        required: true, 
-        nameCheck: true, 
-        minlength: 2 
-      },
-      materno: { 
-        required: true, 
-        nameCheck: true, 
-        minlength: 2 
-      },
-      telefono: { 
-        required: true, 
-        phoneCheck: true 
-      },
-      celular: { 
-        required: true, 
-        celularCheck: true 
-      },
-      correo: { 
-        required: true, 
-        emailAdvanced: true 
-      },
-      nivel: { 
-        required: true 
-      },
-      municipio: { 
-        required: true 
-      },
-      asunto: { 
-        required: true 
-      }
-    },
-    messages: {
-      nombreCompleto: {
-        required: "El nombre completo es requerido",
-        minlength: "Mínimo 5 caracteres"
-      },
-      curp: {
-        required: "La CURP es requerida"
-      },
-      nombre: {
-        required: "El nombre es requerido"
-      },
-      paterno: {
-        required: "El apellido paterno es requerido"
-      },
-      materno: {
-        required: "El apellido materno es requerido",
-        nameCheck: "Formato de apellido inválido"
-      },
-      telefono: {
-        required: "El teléfono es requerido",
-        phoneCheck: "Teléfono inválido (7-10 dígitos)"
-      },
-      celular: {
-        required: "El número celular es requerido",
-        celularCheck: "Celular inválido (10 dígitos)"
-      },
-      correo: {
-        required: "El correo electrónico es requerido",
-        emailAdvanced: "Correo electrónico inválido"
-      },
-      nivel: "Por favor seleccione un nivel educativo",
-      municipio: "Por favor seleccione un municipio",
-      asunto: "Por favor seleccione un asunto"
-    },
-    errorClass: "error",
-    errorElement: "span",
-    errorPlacement: function (error, element) {
-      error.addClass("error-message");
-      error.insertAfter(element);
-    },
-    highlight: function (element, errorClass) {
-      $(element).addClass("error");
-    },
-    unhighlight: function (element, errorClass) {
-      $(element).removeClass("error");
-    },
-    submitHandler: function (form) {
-      $btn.prop("disabled", true).text("Generando...");
-      $success.fadeIn(300);
-      
-      
-      setTimeout(function() {
-        $success.delay(2000).fadeOut(400, function() {
-          $btn.prop("disabled", false).text("Generar Turno");
-          form.submit();
-        });
-      }, 1000);
-      
-      return false;
-    }
-  });
+        if (!idMunicipio) {
+            $oficina.html('<option value="">Seleccione un municipio primero</option>');
+            checkFormValidity(); // Re-validar (botón se deshabilitará)
+            return;
+        }
 
-  function updateButtonState() {
-    const isValid = $form.valid();
-    $btn.prop("disabled", !isValid);
-  }
+        // Llamamos a la API
+        $.getJSON(`/api/oficinas?id_municipio=${idMunicipio}`)
+            .done(function(oficinas) {
+                if (oficinas.length === 0) {
+                    $oficina.html('<option value="">No hay oficinas en este municipio</option>');
+                } else {
+                    $oficina.prop('disabled', false).html('<option value="">Seleccione una oficina</option>');
+                    oficinas.forEach(function(oficina) {
+                        $oficina.append($('<option>', {
+                            value: oficina.id_oficina,
+                            text: oficina.oficina
+                        }));
+                    });
+                }
+            })
+            .fail(function() {
+                $oficina.html('<option value="">Error al cargar oficinas</option>');
+            })
+            .always(function() {
+                // Volvemos a validar DESPUÉS de que la API responda
+                checkFormValidity();
+            });
+    });
 
-  $form.on("input change", "input, select", function() {
-    $(this).valid();
-    updateButtonState();
-  });
+    // --- EVENT LISTENER GENERAL ---
+    $form.on('input change keyup', 'input, select', function() {
+        checkFormValidity();
+    });
 
-  updateButtonState();
+    // --- ESTADO INICIAL ---
+    $("#curp").attr("placeholder", "Ej: ABCD010203HDFRRN09");
+    $("#correo").attr("placeholder", "ejemplo@dominio.com");
+    $("#celular").attr("placeholder", "10 dígitos (Obligatorio)");
+    $("#telefono").attr("placeholder", "7-10 dígitos (Opcional)");
 
-  $("#curp").attr("placeholder", "Ej: ABCD010203HDFRRN09");
-  $("#correo").attr("placeholder", "ejemplo@dominio.com");
-  $("#celular").attr("placeholder", "10 dígitos");
-  $("#telefono").attr("placeholder", "7-10 dígitos");
+    // Deshabilitar el botón al cargar la página
+    checkFormValidity();
 });
-

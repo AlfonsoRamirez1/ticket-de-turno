@@ -3,57 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <title>Actualizar Ticket</title>
-  <link rel="stylesheet" href="../static/css/ticket.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket.css') }}">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    .flash-error {
+      background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24;
+      padding: 15px; border-radius: 6px; font-weight: 500;
+      text-align: center; margin: 20px 0; font-size: 1.05rem;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Actualizar Ticket</h1>
+  <div class="container" style="max-width: 600px;">
+    <h1>Modificar Ticket</h1>
+    <p>Ingrese su CURP y Número de Turno para editar su solicitud. Solo puede editar solicitudes 'Pendientes'.</p>
 
-    <form id="formBuscarActualizar">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form id="formBuscarActualizar" method="GET" action="{{ url_for('actualizar_buscar') }}">
       <div class="form-group">
-        <label for="turnoBuscar">Número de Turno:</label>
-        <input type="text" id="turnoBuscar" name="turnoBuscar" class="text-box">
+        <div class="form-field">
+          <label for="curpBuscar">CURP:</label>
+          <input type="text" id="curpBuscar" name="curp" class="text-box" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-field">
+          <label for="turnoBuscar">Número de Turno:</label>
+          <input type="text" id="turnoBuscar" name="turno" class="text-box" required>
+        </div>
       </div>
       <div class="form-actions">
         <button type="submit">Buscar Ticket</button>
       </div>
     </form>
-
-    <form id="formActualizar" style="display:none; margin-top:20px;">
-      <div class="form-group">
-        <label for="nombreActualizar">Nombre completo:</label>
-        <input type="text" id="nombreActualizar" name="nombreActualizar" class="text-box">
-      </div>
-      <div class="form-group">
-        <label for="nivelActualizar">Nivel:</label>
-        <select id="nivelActualizar" name="nivelActualizar" class="combo-box">
-          <option value="">Seleccione</option>
-          <option value="primaria">Primaria</option>
-          <option value="secundaria">Secundaria</option>
-          <option value="bachillerato">Bachillerato</option>
-        </select>
-      </div>
-      <div class="form-actions">
-        <button type="submit">Actualizar Ticket</button>
-        <button type="button" onclick="window.location.href='../index.html'">Regresar</button>
-      </div>
-    </form>
   </div>
-
-  <script>
-    $("#formBuscarActualizar").on("submit", function(e){
-      e.preventDefault();
-      // Simular búsqueda
-      $("#nombreActualizar").val("Juan Pérez");
-      $("#nivelActualizar").val("Secundaria");
-      $("#formActualizar").show();
-    });
-
-    $("#formActualizar").on("submit", function(e){
-      e.preventDefault();
-      alert("Ticket actualizado correctamente 🎉");
-    });
-  </script>
 </body>
 </html>
