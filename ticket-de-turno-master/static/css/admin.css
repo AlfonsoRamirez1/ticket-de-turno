@@ -1,0 +1,422 @@
+/* static/css/admin.css */
+
+/* 1. Navegación de Administrador */
+.admin-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #333;
+  border-radius: var(--radius);
+  margin-bottom: 25px;
+}
+
+.admin-nav h1 {
+  color: white;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.admin-nav a,
+.admin-nav .nav-buttons a {
+  text-decoration: none;
+  background: var(--danger-color);
+  color: white;
+  padding: 8px 15px;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.admin-nav a:hover {
+  background-color: #c9302c;
+}
+
+/* Botones específicos en la navegación */
+.admin-nav .nav-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-nav .nav-buttons a {
+  background-color: #555;
+}
+.admin-nav .nav-buttons a:hover {
+  background-color: #444;
+}
+.admin-nav .nav-buttons .btn-crear {
+  background-color: var(--primary-color);
+}
+.admin-nav .nav-buttons .btn-crear:hover {
+  background-color: var(--primary-hover);
+}
+.admin-nav .nav-buttons .btn-vista {
+  background-color: var(--warning-color);
+  color: #333;
+}
+.admin-nav .nav-buttons .btn-vista:hover {
+  background-color: #ec971f;
+}
+
+
+/* 2. Dashboard y Menús */
+.dashboard-menu {
+  margin-top: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.dashboard-menu .form-actions {
+  margin: 0;
+}
+.dashboard-menu button {
+  min-width: 250px;
+  font-size: 1.1rem;
+    background-color: var(--primary-color); /* This makes the background blue */
+  color: #fff; /* This makes the text white */
+}
+
+/* It's also good practice to add a hover effect */
+.dashboard-menu button:hover {
+    background-color: var(--primary-hover);
+}
+
+/* 3. Gráficas del Dashboard */
+.graficas-container {
+  margin-top: 20px;
+  border-top: 2px solid var(--border-color);
+  padding-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+@media (min-width: 900px) {
+  .graficas-container {
+    grid-template-columns: 1fr 2fr;
+  }
+}
+
+.grafica-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 5px rgba(0,0,0,.05);
+}
+
+.grafica-box h3 {
+  margin-top: 0;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #555;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+#municipio-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+#municipio-filtros button {
+  appearance: none;
+  border: 1px solid var(--primary-color);
+  background: #f0f8ff;
+  color: var(--primary-color);
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+#municipio-filtros button:hover {
+  background: #e0f0ff;
+}
+
+#municipio-filtros button.active {
+  background: var(--primary-color);
+  color: white;
+  font-weight: bold;
+}
+
+#municipio-grafica-titulo {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #333;
+  margin-top: 0;
+  min-height: 1.2em;
+}
+
+#loader {
+  display: none;
+  text-align: center;
+  padding: 40px;
+}
+#loader p {
+  font-size: 1.2rem;
+  color: #777;
+}
+
+/* 4. Estilos de Tabla de Administrador (admin_turnos.html) */
+.vista-titulo {
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0 0 15px 0;
+}
+
+.search-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.search-form .text-box {
+  flex-grow: 1;
+  max-width: 400px;
+}
+.search-form button {
+  margin: 0;
+  padding: 10px 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+th, td {
+  border-bottom: 1px solid var(--border-color);
+  padding: 12px 15px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+tr:hover {
+  background-color: var(--bg-color);
+}
+
+/* Estados de Turno */
+.estado-pendiente { color: var(--danger-color); font-weight: 600; }
+.estado-resuelto { color: var(--success-color); font-weight: 600; }
+.estado-cancelado { color: var(--text-muted); text-decoration: line-through; }
+
+/* Botones de Acción en Tablas */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.action-buttons form,
+.action-buttons a {
+  display: inline-block;
+  margin: 0;
+}
+
+.action-buttons button,
+.action-buttons a {
+  padding: 5px 10px;
+  font-size: 0.85rem;
+  border-radius: var(--radius);
+  border: none;
+  color: white !important;
+  cursor: pointer;
+  font-family: var(--font-family);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.btn-resolver { background-color: var(--success-color); }
+.btn-pendiente { background-color: var(--warning-color); color: #333 !important; }
+.btn-eliminar { background-color: var(--danger-color); }
+.btn-editar { background-color: var(--primary-color); }
+.btn-editar-cat { background-color: var(--primary-color); } /* Alias */
+
+
+/* 5. Estilos de Catálogos (admin_cat_*) */
+.crear-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 25px;
+  padding: 20px;
+  background-color: #fdfdfd;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  align-items: flex-end;
+}
+.crear-form .form-field {
+  flex-grow: 1;
+  margin-bottom: 0;
+}
+.crear-form label {
+  font-size: 1rem;
+  margin-bottom: 0;
+}
+.crear-form button {
+  padding: 12px 20px;
+  font-size: 1rem;
+  margin: 0;
+}
+.crear-form .form-actions {
+  margin: 0;
+  align-self: flex-end;
+}
+
+/* Grid para crear oficinas */
+.crear-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+@media (min-width: 768px) {
+  .crear-form-grid {
+    grid-template-columns: 2fr 1fr auto;
+  }
+}
+
+
+/* ========================================= */
+/* 6. ESTILOS DE RESPONSIVIDAD (NUEVO)       */
+/* ========================================= */
+@media screen and (max-width: 768px) {
+
+  /* --- Navegación --- */
+  .admin-nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  .admin-nav h1 {
+    text-align: center;
+  }
+  .admin-nav .nav-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .admin-nav .nav-buttons a {
+    text-align: center;
+  }
+  .admin-nav a {
+    text-align: center;
+  }
+
+  /* --- Formularios --- */
+  .search-form {
+    flex-direction: column;
+  }
+  .search-form .text-box {
+    max-width: none;
+  }
+  .search-form button {
+    width: 100%;
+  }
+
+  .crear-form, .crear-form-grid {
+    flex-direction: column;
+    align-items: stretch;
+    grid-template-columns: 1fr; /* Forzar 1 columna */
+  }
+  .crear-form .form-field {
+    width: 100%;
+  }
+  .crear-form .form-actions {
+    align-self: stretch;
+  }
+  .crear-form button {
+    width: 100%;
+  }
+
+  /* --- Lógica de Tabla a Tarjeta --- */
+  table {
+    border: none;
+    box-shadow: none;
+  }
+
+  /* Ocultar cabeceras de la tabla */
+  table thead {
+    display: none;
+  }
+
+  /* Convertir filas en "tarjetas" */
+  table tr {
+    display: block;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    background: var(--bg-card);
+  }
+
+  /* Convertir celdas en bloques */
+  table td {
+    display: block;
+    padding: 10px 15px;
+    padding-left: 40%; /* Dejar espacio para la etiqueta */
+    text-align: right; /* Alinear el valor a la derecha */
+    position: relative;
+    border-bottom: 1px dotted var(--border-color);
+  }
+
+  table tr td:last-child {
+    border-bottom: none; /* Sin borde en la última celda de la tarjeta */
+  }
+
+  /* Añadir la etiqueta usando el pseudo-elemento ::before */
+  table td::before {
+    content: attr(data-label); /* Usar el valor del atributo data-label */
+    position: absolute;
+    left: 15px;
+    top: 10px;
+    padding-right: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.9rem;
+  }
+
+  /* --- Ajustes Específicos para Celdas de Acción --- */
+
+  /* Queremos que los botones se vean bien */
+  table td.action-buttons {
+    padding-left: 15px; /* Quitar el padding especial */
+    text-align: left; /* Alinear los botones a la izquierda */
+  }
+
+  /* Ocultar la etiqueta "Acciones:" */
+  table td.action-buttons::before {
+    display: none;
+  }
+
+  .action-buttons {
+    justify-content: flex-start; /* Alinear botones */
+  }
+}

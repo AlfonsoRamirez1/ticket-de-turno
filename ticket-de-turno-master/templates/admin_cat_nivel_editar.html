@@ -1,0 +1,32 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Editar Nivel Educativo{% endblock %}
+
+{% block content %}
+  <div class="admin-nav">
+    <h1>Editar Nivel Educativo</h1>
+  </div>
+
+  <form id="formEditar" method="POST" action="{{ url_for('admin_niveles_editar_post') }}" style="margin-top: 20px;">
+
+    <input type="hidden" name="id_nivel" value="{{ nivel.id_nivel }}">
+
+    <div class="form-group">
+      <div class="form-field">
+        <label for="nombre">Nombre del Nivel:</label>
+        <input type="text" id="nombre" name="nombre" class="text-box"
+               value="{{ nivel.nivel }}" required>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit">Guardar Cambios</button>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn-secondary"
+              onclick="window.location.href='{{ url_for('admin_niveles_get') }}'">
+        Cancelar
+      </button>
+    </div>
+  </form>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Gestionar Niveles Educativos{% endblock %}
+
+{% block content %}
+  <div class="admin-nav" style="align-items: center;">
+    <h1>Gestionar Niveles Educativos</h1>
+    <a href="{{ url_for('admin_catalogos_menu') }}">Volver a Catálogos</a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <h2>Crear Nuevo Nivel</h2>
+  <form class="crear-form" method="POST" action="{{ url_for('admin_niveles_crear') }}">
+    <div class="form-field">
+      <label for="nombre">Nombre del Nivel:</label>
+      <input type="text" id="nombre" name="nombre" class="text-box" required>
+    </div>
+    <div class="form-actions">
+      <button type="submit">Crear</button>
+    </div>
+  </form>
+
+  <h2>Niveles Existentes</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre del Nivel</th>
+        <th style="width: 180px;">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for nivel in niveles %}
+        <tr>
+          <td data-label="ID">{{ nivel.id_nivel }}</td>
+          <td data-label="Nombre del Nivel">{{ nivel.nivel }}</td>
+          <td class="action-buttons" data-label="Acciones">
+            <a href="{{ url_for('admin_niveles_editar_get', id_nivel=nivel.id_nivel) }}" class="btn-editar-cat">
+              Editar
+            </a>
+            <form method="POST" action="{{ url_for('admin_niveles_eliminar') }}">
+              <input type="hidden" name="id_nivel" value="{{ nivel.id_nivel }}">
+              <button type="submit" class="btn-eliminar"
+                      onclick="return confirm('¿Está seguro? Si el nivel está en uso, no se podrá eliminar.')">
+                Eliminar
+              </button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="3" style="text-align: center;">No hay niveles registrados.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

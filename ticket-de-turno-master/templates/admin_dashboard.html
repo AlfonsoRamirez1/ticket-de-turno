@@ -1,0 +1,245 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+  <nav class="admin-nav">
+    <h1>Panel de Administrador</h1>
+    <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
+  </nav>
+
+  <h2>Bienvenido, {{ current_user.usuario }}</h2>
+  <p>Este es el panel de administración. Desde aquí podrás gestionar los tickets y catálogos.</p>
+  <p>Tu rol es: <strong>{{ current_user.rol }}</strong>.</p>
+
+  <div class="dashboard-menu">
+     <div class="form-actions" style="margin:0;">
+         <button type="button"
+                 onclick="window.location.href='{{ url_for('admin_turnos_get') }}'">
+           Administrar Turnos
+         </button>
+     </div>
+
+     <div class="form-actions" style="margin:0;">
+         <button type="button"
+                 onclick="window.location.href='{{ url_for('admin_catalogos_menu') }}'">
+           Administrar Catálogos
+         </button>
+     </div>
+     <div class="form-actions" style="margin:0;">
+         <button type="button" id="btnVerGraficas" style="background-color: #5cb85c;">
+           Ver Gráficas
+         </button>
+     </div>
+  </div>
+
+  <div id="loader">
+    <p>Cargando estadísticas...</p>
+  </div>
+
+  <div id="graficas-container" style="display: none;">
+    <div class="grafica-box">
+      <h3>Total de Solicitudes</h3>
+      <canvas id="chartTotales" width="400" height="400"></canvas>
+    </div>
+    <div class="grafica-box">
+      <h3>Solicitudes por Municipio</h3>
+      <div id="municipio-filtros"></div>
+      <hr style="border:0; border-top: 1px solid #eee; margin: 20px 0;">
+      <h4 id="municipio-grafica-titulo">Seleccione un municipio</h4>
+      <canvas id="chartMunicipioEspecifico" width="400" height="250"></canvas>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    // Colores para los estados
+    const CHART_COLORS = {
+      pendiente: '#d9534f', // Rojo
+      resuelto: '#5cb85c',  // Verde
+      cancelado: '#777777'  // Gris
+    };
+
+    // Variables para almacenar los datos y las instancias de los gráficos
+    let dashboardData = null; // Guardará los datos de la API
+    let totalChart = null;    // Instancia del gráfico de pastel
+    let muniChart = null;     // Instancia del gráfico de barras
+
+    /**
+     * Dibuja/Actualiza un gráfico de Pastel
+     */
+    function renderPieChart(canvasId, title, labels, data, colors) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+
+      if (totalChart) {
+        totalChart.destroy(); // Destruye el gráfico anterior si existe
+      }
+
+      totalChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: title,
+            data: data,
+            backgroundColor: colors,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'top' } }
+        }
+      });
+    }
+
+    /**
+     * Dibuja/Actualiza un gráfico de Barras
+     */
+    function renderBarChart(canvasId, labels, data, colors) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+
+      if (muniChart) {
+        muniChart.destroy(); // Destruye el gráfico anterior si existe
+      }
+
+      muniChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Total',
+            data: data,
+            backgroundColor: colors
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false } // Ocultamos la leyenda (los colores y ejes son claros)
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                // Asegura que solo se muestren números enteros en el eje Y
+                stepSize: 1
+              }
+            }
+          }
+        }
+      });
+    }
+
+    /**
+     * Muestra los datos del municipio seleccionado
+     */
+    function mostrarDatosMunicipio(municipioNombre) {
+        if (!dashboardData) return; // No hacer nada si no hay datos
+
+        // Actualizar título
+        document.getElementById('municipio-grafica-titulo').innerText = `Mostrando: ${municipioNombre}`;
+
+        // Actualizar botón activo
+        document.querySelectorAll('#municipio-filtros button').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.municipio === municipioNombre);
+        });
+
+        // Obtener datos del municipio seleccionado
+        const data = dashboardData.por_municipio[municipioNombre];
+
+        const labels = ['Pendiente', 'Resuelto', 'Cancelado'];
+        const values = [
+          data.pendiente || 0,
+          data.resuelto || 0,
+          data.cancelado || 0
+        ];
+        const colors = [
+          CHART_COLORS.pendiente,
+          CHART_COLORS.resuelto,
+          CHART_COLORS.cancelado
+        ];
+
+        // Renderizar el gráfico de barras con los nuevos datos
+        renderBarChart('chartMunicipioEspecifico', labels, values, colors);
+    }
+
+    /**
+     * Función principal: Se ejecuta al hacer clic en el botón "Ver Gráficas"
+     */
+    document.getElementById('btnVerGraficas').addEventListener('click', function() {
+      const $loader = document.getElementById('loader');
+      const $content = document.getElementById('graficas-container');
+      const $button = this;
+
+      // Si ya cargamos los datos (dashboardData no es null),
+      // solo muestra u oculta el contenedor
+      if (dashboardData) {
+        const isHidden = $content.style.display === 'none';
+        $content.style.display = isHidden ? 'grid' : 'none';
+        $button.innerText = isHidden ? 'Ocultar Gráficas' : 'Ver Gráficas';
+        $button.style.backgroundColor = isHidden ? '#f0ad4e' : '#5cb85c'; // Naranja / Verde
+        return;
+      }
+
+      // Si es la primera vez que hacemos clic, buscamos los datos
+      $loader.style.display = 'block';
+      $content.style.display = 'none'; // Asegurarse que esté oculto
+      $button.disabled = true;
+      $button.innerText = 'Cargando...';
+
+      fetch("{{ url_for('admin_dashboard_stats') }}")
+        .then(response => {
+          if (!response.ok) throw new Error('Error al cargar los datos de la API');
+          return response.json();
+        })
+        .then(data => {
+          dashboardData = data; // Guardar datos globalmente
+
+          // Ocultar loader y mostrar contenido
+          $loader.style.display = 'none';
+          $content.style.display = 'grid';
+          $button.disabled = false;
+          $button.innerText = 'Ocultar Gráficas';
+          $button.style.backgroundColor = '#f0ad4e'; // Naranja
+
+          // --- 1. Renderizar Gráfico Total (Pastel) ---
+          const totalLabels = data.totales.map(d => d.estado.charAt(0).toUpperCase() + d.estado.slice(1));
+          const totalValues = data.totales.map(d => d.total);
+          const totalColors = data.totales.map(d => CHART_COLORS[d.estado.toLowerCase()] || '#ccc');
+          renderPieChart('chartTotales', 'Total de Solicitudes', totalLabels, totalValues, totalColors);
+
+          // --- 2. Poblar Filtros de Municipio ---
+          const $filtrosContainer = document.getElementById('municipio-filtros');
+          const municipios = Object.keys(data.por_municipio).sort();
+
+          if (municipios.length === 0) {
+              $filtrosContainer.innerHTML = '<p>No hay datos por municipio para mostrar.</p>';
+              document.getElementById('municipio-grafica-titulo').style.display = 'none';
+              return;
+          }
+
+          // Crear un botón por cada municipio
+          municipios.forEach(nombre => {
+            const btn = document.createElement('button');
+            btn.innerText = nombre;
+            btn.dataset.municipio = nombre; // Guardar el nombre en el botón
+            btn.addEventListener('click', () => mostrarDatosMunicipio(nombre));
+            $filtrosContainer.appendChild(btn);
+          });
+
+          // Mostrar el primer municipio de la lista por defecto
+          mostrarDatosMunicipio(municipios[0]);
+        })
+        .catch(error => {
+          console.error('Error en el fetch:', error);
+          $loader.innerHTML = '<p style="color: red;">Error al cargar las estadísticas.</p>';
+          $loader.style.display = 'block';
+          $button.disabled = false;
+          $button.innerText = 'Reintentar Carga';
+        });
+    });
+  </script>
+{% endblock %}

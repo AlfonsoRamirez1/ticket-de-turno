@@ -1,0 +1,32 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Editar Asunto{% endblock %}
+
+{% block content %}
+  <div class="admin-nav">
+    <h1>Editar Asunto</h1>
+  </div>
+
+  <form id="formEditar" method="POST" action="{{ url_for('admin_asuntos_editar_post') }}" style="margin-top: 20px;">
+
+    <input type="hidden" name="id_asunto" value="{{ asunto.id_asunto }}">
+
+    <div class="form-group">
+      <div class="form-field">
+        <label for="descripcion">Descripción del Asunto:</label>
+        <input type="text" id="descripcion" name="descripcion" class="text-box"
+               value="{{ asunto.descripcion }}" required>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit">Guardar Cambios</button>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn-secondary"
+              onclick="window.location.href='{{ url_for('admin_asuntos_get') }}'">
+        Cancelar
+      </button>
+    </div>
+  </form>
+{% endblock %}

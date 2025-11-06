@@ -1,0 +1,47 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Administrar Catálogos{% endblock %}
+
+{% block content %}
+  <h1>Administrar Catálogos</h1>
+  <p>Seleccione el catálogo que desea gestionar.</p>
+
+  <div class="dashboard-menu" style="flex-direction: column; gap: 15px;">
+
+    <div class="form-actions">
+      <button type="button" onclick="window.location.href='{{ url_for('admin_municipios_get') }}'">
+        Gestionar Municipios
+      </button>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" onclick="window.location.href='{{ url_for('admin_asuntos_get') }}'">
+        Gestionar Asuntos
+      </button>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" onclick="window.location.href='{{ url_for('admin_niveles_get') }}'">
+        Gestionar Niveles Educativos
+      </button>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" onclick="window.location.href='{{ url_for('admin_oficinas_get') }}'">
+        Gestionar Oficinas Regionales
+      </button>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" onclick="window.location.href='{{ url_for('admin_horarios_get') }}'">
+        Gestionar Horarios de Atención
+      </button>
+    </div>
+    <div class="form-actions" style="margin-top: 30px;">
+      <button type="button" class="btn-secondary"
+              onclick="window.location.href='{{ url_for('admin_dashboard') }}'">
+        Volver al Dashboard
+      </button>
+    </div>
+  </div>
+{% endblock %}

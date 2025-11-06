@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Actualizar Ticket{% endblock %}
+
+{% block content %}
+<div class="container-form">
+  <h1>Modificar Ticket</h1>
+  <p>Ingrese su CURP y Número de Turno para editar su solicitud. Solo puede editar solicitudes 'Pendientes'.</p>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form id="formBuscarActualizar" method="GET" action="{{ url_for('actualizar_buscar') }}">
+    <div class="form-group">
+      <div class="form-field">
+        <label for="curpBuscar">CURP:</label>
+        <input type="text" id="curpBuscar" name="curp" class="text-box" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-field">
+        <label for="turnoBuscar">Número de Turno:</label>
+        <input type="text" id="turnoBuscar" name="turno" class="text-box" required>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit">Buscar Ticket</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

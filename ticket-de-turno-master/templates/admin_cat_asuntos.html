@@ -1,0 +1,64 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Gestionar Asuntos{% endblock %}
+
+{% block content %}
+  <div class="admin-nav" style="align-items: center;">
+    <h1>Gestionar Asuntos</h1>
+    <a href="{{ url_for('admin_catalogos_menu') }}">Volver a Catálogos</a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <h2>Crear Nuevo Asunto</h2>
+  <form class="crear-form" method="POST" action="{{ url_for('admin_asuntos_crear') }}">
+    <div class="form-field">
+      <label for="descripcion">Descripción del Asunto:</label>
+      <input type="text" id="descripcion" name="descripcion" class="text-box" required>
+    </div>
+    <div class="form-actions">
+      <button type="submit">Crear</button>
+    </div>
+  </form>
+
+  <h2>Asuntos Existentes</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Descripción</th>
+        <th style="width: 180px;">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for asunto in asuntos %}
+        <tr>
+          <td data-label="ID">{{ asunto.id_asunto }}</td>
+          <td data-label="Descripción">{{ asunto.descripcion }}</td>
+          <td class="action-buttons" data-label="Acciones">
+            <a href="{{ url_for('admin_asuntos_editar_get', id_asunto=asunto.id_asunto) }}" class="btn-editar-cat">
+              Editar
+            </a>
+            <form method="POST" action="{{ url_for('admin_asuntos_eliminar') }}">
+              <input type="hidden" name="id_asunto" value="{{ asunto.id_asunto }}">
+              <button type="submit" class="btn-eliminar"
+                      onclick="return confirm('¿Está seguro? Si el asunto está en uso, no se podrá eliminar.')">
+                Eliminar
+              </button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="3" style="text-align: center;">No hay asuntos registrados.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
