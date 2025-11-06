@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Cancelar Ticket{% endblock %}
+
+{% block content %}
+<div class="container-form">
+  <h1>Cancelar Ticket</h1>
+  <p>Ingrese el número de turno y la CURP del alumno para cancelar la solicitud. Solo se pueden cancelar tickets con estado 'Pendiente'.</p>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form id="formEliminar" method="POST" action="{{ url_for('eliminar_post') }}">
+    <div class="form-group">
+      <div class="form-field">
+        <label for="turnoEliminar">Número de Turno:</label>
+        <input type="number" id="turnoEliminar" name="turnoEliminar" class="text-box" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-field">
+        <label for="curpEliminar">CURP del Alumno:</label>
+        <input type="text" id="curpEliminar" name="curpEliminar" class="text-box" required style="text-transform: uppercase;">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit">Cancelar Ticket</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $(document).ready(function() {
+    $("#formEliminar").on("submit", function(e) {
+      const turno = $("#turnoEliminar").val();
+      const curp = $("#curpEliminar").val();
+      if (!turno || !curp) {
+        // La validación del navegador (required) debería manejar esto, pero es una buena práctica.
+        return;
+      }
+      // Usamos el confirm nativo del navegador
+      if (!confirm(`¿Está seguro que desea cancelar el ticket #${turno} para la CURP ${curp}?`)) {
+        e.preventDefault(); // Cancela el envío del formulario
+      }
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Editar Horario de Atención{% endblock %}
+
+{% block content %}
+  <div class="admin-nav">
+    <h1>Editar Horario de Atención</h1>
+  </div>
+
+  <form id="formEditar" method="POST" action="{{ url_for('admin_horarios_editar_post') }}" style="margin-top: 20px;">
+
+    <input type="hidden" name="id_horario" value="{{ horario.id_horario }}">
+
+    <div class="form-group">
+      <div class="form-field">
+        <label for="id_oficina">Oficina:</label>
+        <select id="id_oficina" name="id_oficina" class="combo-box" required>
+          <option value="">Seleccione...</option>
+          {% for o in oficinas %}
+          <option value="{{ o.id_oficina }}" {% if o.id_oficina == horario.id_oficina %}selected{% endif %}>
+            {{ o.oficina }} ({{ o.municipio.municipio }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-field">
+        <label for="dia_semana">Día:</label>
+        <select id="dia_semana" name="dia_semana" class="combo-box" required>
+          {% set dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'] %}
+          {% for dia in dias %}
+          <option value="{{ dia }}" {% if dia == horario.dia_semana %}selected{% endif %}>{{ dia | capitalize }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-field">
+        <label for="hora_apertura">Hora de Apertura:</label>
+        <input type="time" id="hora_apertura" name="hora_apertura" class="text-box"
+               value="{{ horario.hora_apertura.strftime('%H:%M') if horario.hora_apertura else '' }}" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-field">
+        <label for="hora_cierre">Hora de Cierre:</label>
+        <input type="time" id="hora_cierre" name="hora_cierre" class="text-box"
+               value="{{ horario.hora_cierre.strftime('%H:%M') if horario.hora_cierre else '' }}" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-field">
+        <label for="max_turnos_dia">Máximo de Turnos:</label>
+        <input type="number" id="max_turnos_dia" name="max_turnos_dia" class="text-box"
+               value="{{ horario.max_turnos_dia }}" required>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit">Guardar Cambios</button>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn-secondary"
+              onclick="window.location.href='{{ url_for('admin_horarios_get') }}'">
+        Cancelar
+      </button>
+    </div>
+  </form>
+{% endblock %}

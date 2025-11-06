@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Editando Ticket #{{ ticket.numero_turno }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="public-title">Editando Ticket #{{ ticket.numero_turno }}</h1>
+
+  <form id="formTurno" method="POST" action="{{ url_for('actualizar_guardar') }}">
+    <input type="hidden" name="id_solicitante" value="{{ ticket.id_solicitante }}">
+    <input type="hidden" name="id_turno" value="{{ ticket.id_turno }}">
+
+    <!-- ... (Form fields) ... -->
+    <div class="form-group">
+        <div class="form-grid">
+          <div class="form-field field-4">
+            <label for="nombreCompleto">Nombre completo de quien realizará el trámite:</label>
+            <input type="text" id="nombreCompleto" name="nombreCompleto" class="text-box" value="{{ ticket.nombre_tramitante }}">
+            <span class="error-message"></span>
+          </div>
+
+          <div class="form-field field-2">
+            <label for="curp">CURP:</label>
+            <input type="text" id="curp" name="curp" class="text-box" value="{{ ticket.curp }}">
+            <span class="error-message"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-grid">
+          <div class="form-field field-2">
+            <label for="nombre">Nombre (alumno):</label>
+            <input type="text" id="nombre" name="nombre" class="text-box" value="{{ ticket.nombre_solicitante }}">
+            <span class="error-message"></span>
+          </div>
+
+          <div class="form-field field-2">
+            <label for="paterno">Paterno (alumno):</label>
+            <input type="text" id="paterno" name="paterno" class="text-box" value="{{ ticket.paterno_solicitante }}">
+            <span class="error-message"></span>
+          </div>
+
+          <div class="form-field field-2">
+            <label for="materno">Materno (alumno):</label>
+            <input type="text" id="materno" name="materno" class="text-box" value="{{ ticket.materno_solicitante }}">
+            <span class="error-message"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-grid">
+          <div class="form-field field-2">
+            <label for="telefono">Teléfono:</label>
+            <input type="tel" id="telefono" name="telefono" class="text-box" value="{{ ticket.telefono }}">
+            <span class="error-message"></span>
+          </div>
+          <div class="form-field field-2">
+            <label for="celular">Celular:</label>
+            <input type="tel" id="celular" name="celular" class="text-box" value="{{ ticket.celular }}">
+            <span class="error-message"></span>
+          </div>
+          <div class="form-field field-2">
+            <label for="correo">Correo:</label>
+            <input type="email" id="correo" name="correo" class="text-box" value="{{ ticket.correo }}">
+            <span class="error-message"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-field field-6">
+          <label for="nivel">Nivel educativo:</label>
+          <select id="nivel" name="nivel" class="combo-box" required>
+            <option value="">Seleccione una opción</option>
+            {% for nivel in catalogos.niveles %}
+              <option value="{{ nivel.id_nivel }}" {% if nivel.id_nivel == ticket.id_nivel %}selected{% endif %}>
+                {{ nivel.nivel }}
+              </option>
+            {% endfor %}
+          </select>
+          <span class="error-message"></span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-grid">
+          <div class="form-field field-3">
+            <label for="municipio">Municipio:</label>
+            <select id="municipio" name="municipio" class="combo-box" required>
+              <option value="">Seleccione un municipio</option>
+              {% for municipio in catalogos.municipios %}
+                <option value="{{ municipio.id_municipio }}" {% if municipio.id_municipio == ticket.id_municipio %}selected{% endif %}>
+                  {{ municipio.municipio }}
+                </option>
+              {% endfor %}
+            </select>
+            <span class="error-message"></span>
+          </div>
+          <div class="form-field field-3">
+            <label for="oficina">Oficina Regional:</label>
+            <select id="oficina" name="oficina" class="combo-box" required>
+              <!-- Se llenará con JS -->
+            </select>
+            <span class="error-message"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-field field-6">
+          <label for="asunto">Asunto:</label>
+          <select id="asunto" name="asunto" class="combo-box" required>
+            <option value="">Seleccione un asunto</option>
+            {% for asunto in catalogos.asuntos %}
+              <option value="{{ asunto.id_asunto }}" {% if asunto.id_asunto == ticket.id_asunto %}selected{% endif %}>
+                {{ asunto.descripcion }}
+              </option>
+            {% endfor %}
+          </select>
+          <span class="error-message"></span>
+        </div>
+      </div>
+    <!-- ... (End of form fields) ... -->
+    <div class="form-actions">
+      <button type="submit">Guardar Cambios</button>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" onclick="window.location.href='{{ url_for('root') }}'">Cancelar</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.20.0/dist/jquery.validate.min.js"></script>
+  <script>
+  $(document).ready(function() {
+
+    const idMunicipioActual = "{{ ticket.id_municipio }}";
+    const idOficinaActual = "{{ ticket.id_oficina }}";
+
+    function cargarOficinas() {
+      const idMunicipio = $('#municipio').val();
+      const $oficinaSelect = $('#oficina');
+      $oficinaSelect.prop('disabled', true).html('<option value="">Cargando...</option>');
+
+      if (!idMunicipio) {
+        $oficinaSelect.html('<option value="">Seleccione un municipio</option>');
+        return;
+      }
+
+      $.getJSON(`{{ url_for('api_oficinas') }}?id_municipio=${idMunicipio}`)
+        .done(function(oficinas) {
+          if (oficinas.length === 0) {
+             $oficinaSelect.html('<option value="">No hay oficinas</option>');
+             return;
+          }
+          $oficinaSelect.prop('disabled', false).html('<option value="">Seleccione oficina</option>');
+          let found = false;
+          oficinas.forEach(function(oficina) {
+            const $option = $('<option>', {
+              value: oficina.id_oficina, text: oficina.oficina
+            });
+            // Si es la oficina actual, la seleccionamos
+            if(oficina.id_oficina == idOficinaActual) {
+                $option.prop('selected', true);
+                found = true;
+            }
+            $oficinaSelect.append($option);
+          });
+
+          // Si la oficina seleccionada no estaba en la lista (porque se cambió de municipio)
+          // y ahora volvemos al municipio original, la re-seleccionamos.
+          if (!found && idMunicipio == idMunicipioActual) {
+              $oficinaSelect.val(idOficinaActual);
+          }
+        });
+    }
+
+    // Cargar oficinas al inicio
+    cargarOficinas();
+
+    // Cargar oficinas cuando cambia el municipio
+    $('#municipio').on('change', cargarOficinas);
+
+    // Validar el formulario
+    $("#formTurno").validate();
+  });
+  </script>
+{% endblock %}

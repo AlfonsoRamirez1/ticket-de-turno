@@ -1,0 +1,121 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Gestionar Horarios de Atención{% endblock %}
+
+{% block content %}
+  <div class="admin-nav" style="align-items: center;">
+    <h1>Gestionar Horarios de Atención</h1>
+    <a href="{{ url_for('admin_catalogos_menu') }}">Volver a Catálogos</a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <h2>Crear Nuevo Horario</h2>
+  <form class="crear-form crear-form-grid" method="POST" action="{{ url_for('admin_horarios_crear') }}"
+        style="grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; align-items: flex-end;">
+
+    <div class="form-field" style="grid-column: 1 / 3;">
+      <label for="id_oficina">Oficina:</label>
+      <select id="id_oficina" name="id_oficina" class="combo-box" required>
+        <option value="">Seleccione...</option>
+        {% for o in oficinas %}
+        <option value="{{ o.id_oficina }}">{{ o.oficina }} ({{ o.municipio.municipio }})</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-field" style="grid-column: 3 / 5;">
+      <label for="max_turnos_dia">Max. Turnos (por día):</label>
+      <input type="number" id="max_turnos_dia" name="max_turnos_dia" class="text-box" value="21" required>
+    </div>
+
+    <div class="form-field" style="grid-column: 1 / 3;">
+      <label for="hora_apertura">Apertura:</label>
+      <input type="time" id="hora_apertura" name="hora_apertura" class="text-box" value="08:00" required>
+    </div>
+
+    <div class="form-field" style="grid-column: 3 / 5;">
+      <label for="hora_cierre">Cierre:</label>
+      <input type="time" id="hora_cierre" name="hora_cierre" class="text-box" value="15:00" required>
+    </div>
+
+    <div class="form-field" style="grid-column: 1 / -1; margin-top: 10px;">
+      <label>Días de la semana (seleccione uno o más):</label>
+      <div style="display: flex; flex-wrap: wrap; gap: 15px; padding-top: 10px; border: 1px solid var(--border-color); padding: 15px; border-radius: var(--radius);">
+        <label style="display: flex; align-items: center; gap: 5px; margin-bottom: 0; font-weight: 500;">
+          <input type="checkbox" name="dias_semana" value="lunes" checked> Lunes
+        </label>
+        <label style="display: flex; align-items: center; gap: 5px; margin-bottom: 0; font-weight: 500;">
+          <input type="checkbox" name="dias_semana" value="martes" checked> Martes
+        </label>
+        <label style="display: flex; align-items: center; gap: 5px; margin-bottom: 0; font-weight: 500;">
+          <input type="checkbox" name="dias_semana" value="miercoles" checked> Miércoles
+        </label>
+        <label style="display: flex; align-items: center; gap: 5px; margin-bottom: 0; font-weight: 500;">
+          <input type="checkbox" name="dias_semana" value="jueves" checked> Jueves
+        </label>
+        <label style="display: flex; align-items: center; gap: 5px; margin-bottom: 0; font-weight: 500;">
+          <input type="checkbox" name="dias_semana" value="viernes" checked> Viernes
+        </label>
+        <label style="display: flex; align-items: center; gap: 5px; margin-bottom: 0; font-weight: 500;">
+          <input type="checkbox" name="dias_semana" value="sabado"> Sábado
+        </label>
+        <label style="display: flex; align-items: center; gap: 5px; margin-bottom: 0; font-weight: 500;">
+          <input type="checkbox" name="dias_semana" value="domingo"> Domingo
+        </label>
+      </div>
+    </div>
+    <div class="form-actions" style="grid-column: 4 / 5;">
+      <button type="submit">Crear Horarios</button>
+    </div>
+  </form>
+
+  <h2>Horarios Existentes</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Oficina</th>
+        <th>Día</th>
+        <th>Apertura</th>
+        <th>Cierre</th>
+        <th>Max. Turnos</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for h in horarios %}
+        <tr>
+          <td data-label="ID">{{ h.id_horario }}</td>
+          <td data-label="Oficina">{{ h.oficina.oficina or 'N/A' }}</td>
+          <td data-label="Día">{{ h.dia_semana | capitalize }}</td>
+          <td data-label="Apertura">{{ h.hora_apertura.strftime('%H:%M') if h.hora_apertura else 'N/A' }}</td>
+          <td data-label="Cierre">{{ h.hora_cierre.strftime('%H:%M') if h.hora_cierre else 'N/A' }}</td>
+          <td data-label="Max. Turnos">{{ h.max_turnos_dia }}</td>
+          <td class="action-buttons" data-label="Acciones">
+            <a href="{{ url_for('admin_horarios_editar_get', id_horario=h.id_horario) }}" class="btn-editar-cat">
+              Editar
+            </a>
+            <form method="POST" action="{{ url_for('admin_horarios_eliminar') }}">
+              <input type="hidden" name="id_horario" value="{{ h.id_horario }}">
+              <button type="submit" class="btn-eliminar"
+                      onclick="return confirm('¿Está seguro que desea eliminar este horario?')">
+                Eliminar
+              </button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="7" style="text-align: center;">No hay horarios registrados.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Ver Ticket{% endblock %}
+
+{% block content %}
+<div class="container-form">
+  <h1>Ver Ticket</h1>
+
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  <form id="formVerTicket" method="GET" action="{{ url_for('ver_get') }}">
+    <div class="form-group">
+      <div class="form-field">
+        <label for="turno">Número de Turno (Folio):</label>
+        <input type="text" id="turno" name="turno" class="text-box" value="{{ request.args.get('turno', '') }}">
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-field">
+        <label for="curp">CURP del alumno:</label>
+        <input type="text" id="curp" name="curp" class="text-box" value="{{ request.args.get('curp', '') }}">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit">Buscar Ticket</button>
+    </div>
+  </form>
+
+  {% if ticket %}
+  <div id="ticketInfo" style="margin-top:20px; border-top: 1px solid #eee; padding-top: 20px;">
+    <h3>Información del Ticket</h3>
+    <p><strong>Turno (Folio):</strong> {{ ticket.numero_turno }}</p>
+    <p><strong>Estado:</strong> <span class="estado-{{ ticket.estado }}">{{ ticket.estado | capitalize }}</span></p>
+
+    <hr>
+    <p><strong>Fecha de Cita:</strong> {{ ticket.fecha_solicitud.strftime('%Y-%m-%d') }}</p>
+    <p><strong>Hora de Cita:</strong> {{ ticket.hora_solicitud.strftime('%I:%M %p') }}</p>
+    <hr>
+    <p><strong>Nombre Tramitante:</strong> {{ ticket.solicitante.nombre_tramitante }}</p>
+    <p><strong>Alumno:</strong> {{ ticket.solicitante.nombre_solicitante }} {{ ticket.solicitante.paterno_solicitante }}</p>
+    <p><strong>CURP Alumno:</strong> {{ ticket.solicitante.curp }}</p>
+    <hr>
+    <p><strong>Oficina:</strong> {{ ticket.oficina.oficina }}</p>
+    <p><strong>Asunto:</strong> {{ ticket.asunto.descripcion }}</p>
+    <p><strong>Nivel:</strong> {{ ticket.nivel.nivel }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
