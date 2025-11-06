@@ -1,21 +1,17 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Editando Ticket #{{ ticket.numero_turno }}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket.css') }}">
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.20.0/dist/jquery.validate.min.js"></script>
-</head>
-<body>
-  <div class="container">
-    <h1>Editando Ticket #{{ ticket.numero_turno }}</h1>
+{% extends "base.html" %}
 
-    <form id="formTurno" method="POST" action="{{ url_for('actualizar_guardar') }}">
-      <input type="hidden" name="id_solicitante" value="{{ ticket.id_solicitante }}">
-      <input type="hidden" name="id_turno" value="{{ ticket.id_turno }}">
+{% block title %}Editando Ticket #{{ ticket.numero_turno }}{% endblock %}
 
-      <div class="form-group">
+{% block content %}
+<div class="container">
+  <h1 class="public-title">Editando Ticket #{{ ticket.numero_turno }}</h1>
+
+  <form id="formTurno" method="POST" action="{{ url_for('actualizar_guardar') }}">
+    <input type="hidden" name="id_solicitante" value="{{ ticket.id_solicitante }}">
+    <input type="hidden" name="id_turno" value="{{ ticket.id_turno }}">
+
+    <!-- ... (Form fields) ... -->
+    <div class="form-group">
         <div class="form-grid">
           <div class="form-field field-4">
             <label for="nombreCompleto">Nombre completo de quien realizará el trámite:</label>
@@ -105,12 +101,7 @@
           <div class="form-field field-3">
             <label for="oficina">Oficina Regional:</label>
             <select id="oficina" name="oficina" class="combo-box" required>
-              <option value="">Seleccione una oficina</option>
-              {% for oficina in catalogos.oficinas %}
-                <option value="{{ oficina.id_oficina }}" {% if oficina.id_oficina == ticket.id_oficina %}selected{% endif %}>
-                  {{ oficina.oficina }}
-                </option>
-              {% endfor %}
+              <!-- Se llenará con JS -->
             </select>
             <span class="error-message"></span>
           </div>
@@ -131,22 +122,27 @@
           <span class="error-message"></span>
         </div>
       </div>
+    <!-- ... (End of form fields) ... -->
+    <div class="form-actions">
+      <button type="submit">Guardar Cambios</button>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" onclick="window.location.href='{{ url_for('root') }}'">Cancelar</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
 
-      <div class="form-actions">
-        <button type="submit">Guardar Cambios</button>
-      </div>
-      <div class="form-actions">
-        <button type="button" onclick="window.location.href='{{ url_for('root') }}'">Cancelar</button>
-      </div>
-    </form>
-  </div>
-
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.20.0/dist/jquery.validate.min.js"></script>
   <script>
-  // Script para actualizar las oficinas cuando cambia el municipio
-  // (Exactamente igual que en CrearTicket.html)
   $(document).ready(function() {
-    $('#municipio').on('change', function() {
-      const idMunicipio = $(this).val();
+
+    const idMunicipioActual = "{{ ticket.id_municipio }}";
+    const idOficinaActual = "{{ ticket.id_oficina }}";
+
+    function cargarOficinas() {
+      const idMunicipio = $('#municipio').val();
       const $oficinaSelect = $('#oficina');
       $oficinaSelect.prop('disabled', true).html('<option value="">Cargando...</option>');
 
@@ -162,16 +158,35 @@
              return;
           }
           $oficinaSelect.prop('disabled', false).html('<option value="">Seleccione oficina</option>');
+          let found = false;
           oficinas.forEach(function(oficina) {
-            $oficinaSelect.append($('<option>', {
+            const $option = $('<option>', {
               value: oficina.id_oficina, text: oficina.oficina
-            }));
+            });
+            // Si es la oficina actual, la seleccionamos
+            if(oficina.id_oficina == idOficinaActual) {
+                $option.prop('selected', true);
+                found = true;
+            }
+            $oficinaSelect.append($option);
           });
+
+          // Si la oficina seleccionada no estaba en la lista (porque se cambió de municipio)
+          // y ahora volvemos al municipio original, la re-seleccionamos.
+          if (!found && idMunicipio == idMunicipioActual) {
+              $oficinaSelect.val(idOficinaActual);
+          }
         });
-    });
+    }
+
+    // Cargar oficinas al inicio
+    cargarOficinas();
+
+    // Cargar oficinas cuando cambia el municipio
+    $('#municipio').on('change', cargarOficinas);
+
     // Validar el formulario
     $("#formTurno").validate();
   });
   </script>
-</body>
-</html>
+{% endblock %}

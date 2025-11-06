@@ -1,12 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio</title>
-</head>
-<body>
-    <h1>Página de Inicio</h1>
-    <p>Bienvenido a la página de inicio.</p>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Inicio - Ticket de Turno{% endblock %}
+
+{% block content %}
+<div class="p-4 bg-white shadow-sm rounded">
+  <h3 class="text-muted mb-2">Bienvenido al sistema de Tickets Escolares</h3>
+  <p>Selecciona una opción en el menú superior para comenzar.</p>
+</div>
+{% endblock %}

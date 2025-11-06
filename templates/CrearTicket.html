@@ -1,22 +1,18 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Ticket de Turno</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket.css') }}">
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  </head>
-<body>
-  <div class="container">
-    <header class="top-header">
-      <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo Institución 1">
-      <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Logo Institución 2">
-    </header>
+{% extends "base.html" %}
 
-    <h1>Ticket de Turno</h1>
+{% block title %}Crear Ticket{% endblock %}
 
-    <form id="formTurno" method="POST" action="{{ url_for('crear_post') }}">
-      <div class="form-group">
+{% block content %}
+<div class="container">
+  <header class="top-header">
+    <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo Institución 1">
+    <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Logo Institución 2">
+  </header>
+
+  <h1 class="public-title">Ticket de Turno</h1>
+
+  <form id="formTurno" method="POST" action="{{ url_for('crear_post') }}">
+    <div class="form-group">
         <div class="form-grid">
           <div class="form-field field-4">
             <label for="nombreCompleto">Nombre completo de quien realizará el trámite:</label>
@@ -135,17 +131,17 @@
       </div>
 
       <div class="form-actions">
-        <button type="button" id="btnRegresar" onclick="window.location.href='{{ url_for('root') }}'">Regresar</button>
+        <button type="button" class="btn-secondary" id="btnRegresar" onclick="window.location.href='{{ url_for('inicio') }}'">Regresar</button>
       </div>
 
-      <div id="successMessage" style="display:none;">
+      <div id="successMessage" class="alert-success" style="display:none;">
         Turno generado correctamente 🎉
       </div>
-
     </form>
-  </div>
+</div>
+{% endblock %}
 
+{% block scripts %}
+  <!-- Movimos el script al bloque de scripts -->
   <script src="{{ url_for('static', filename='js/validador.js', v=cache_buster) }}"></script>
-
-</body>
-</html>
+{% endblock %}

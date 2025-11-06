@@ -7,19 +7,24 @@ from flask_login import (LoginManager, login_user, logout_user,
                          login_required, current_user)
 import random
 
-# Controladores
+# --- INICIO DE CONFIGURACIÓN ORM ---
+from config import Config
+from DB.db import db  # Importamos la instancia de la BD
+from flask_bcrypt import Bcrypt
+# --- FIN DE CONFIGURACIÓN ORM ---
+
+# --- Importamos los controladores REFACTORIZADOS ---
 from controllers.ticket_controller import TicketController
 from controllers.auth_controller import AuthController
-from config import Config
+from controllers.catalogo_controller import CatalogoController
 from utils.pdf_rl import crear_comprobante_rl
-
-# --- INICIO DE MODIFICACIÓN (REQ 5) ---
-from controllers.catalogo_controller import CatalogoController  # Importar el nuevo controlador
-
-# --- FIN DE MODIFICACIÓN ---
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# --- Inicializar extensiones ---
+db.init_app(app)
+bcrypt = Bcrypt(app)  # bcrypt lo usa app.py para el login_post
 
 # --- CONFIGURACIÓN DE FLASK-LOGIN ---
 login_manager = LoginManager()
@@ -28,19 +33,15 @@ login_manager.login_view = 'login_get'
 login_manager.login_message = 'Por favor, inicie sesión para acceder a esta página.'
 login_manager.login_message_category = 'error'
 
-# Instanciamos controladores
+# --- Instanciamos controladores ---
 ticket_controller = TicketController()
 auth_controller = AuthController()
-
-# --- INICIO DE MODIFICACIÓN (REQ 5) ---
-catalogo_controller = CatalogoController()  # Instanciar el nuevo controlador
-
-
-# --- FIN DE MODIFICACIÓN ---
+catalogo_controller = CatalogoController()
 
 
 @login_manager.user_loader
 def load_user(user_id):
+    # Ahora usamos el controlador refactorizado
     return auth_controller.get_user_by_id(user_id)
 
 
@@ -64,7 +65,7 @@ def login_get():
 @app.post("/login")
 def login_post():
     usuario = request.form.get('usuario')
-    password = request.form.get('password')
+    password_ingresada = request.form.get('password')
     captcha_input = request.form.get('captcha')
 
     try:
@@ -75,7 +76,8 @@ def login_post():
         flash('Respuesta de Captcha inválida.', 'error')
         return redirect(url_for('login_get'))
 
-    admin = auth_controller.validar_login(usuario, password)
+    # Usamos el controlador refactorizado
+    admin = auth_controller.validar_login(usuario, password_ingresada)
 
     if admin:
         login_user(admin)
@@ -101,21 +103,15 @@ def logout():
 
 
 # ---------------------------
-# RUTAS DE ADMINISTRACIÓN (PROTEGIDAS)
+# RUTAS DE ADMINISTRACIÓN (TURNOS)
 # ---------------------------
 
 @app.get("/admin/turnos")
 @login_required
 def admin_turnos_get():
-    # "q" es el parámetro de búsqueda
     query = request.args.get("q", "")
-    # "vista" define si vemos 'activos' (default) o 'cancelados'
     vista = request.args.get("vista", "activos")
-
-    # Pasamos ambos parámetros al controlador
     turnos = ticket_controller.buscar_turnos_admin(query, vista)
-
-    # Pasamos 'vista' y 'query' a la plantilla para los enlaces y el form
     return render_template("admin_turnos.html",
                            turnos=turnos,
                            query=query,
@@ -138,7 +134,6 @@ def admin_cambiar_estado():
     else:
         flash("Error al actualizar el estado.", "error")
 
-    # Mantenemos la vista actual después de la acción
     vista = request.args.get("vista", "activos")
     return redirect(url_for('admin_turnos_get', vista=vista))
 
@@ -147,28 +142,22 @@ def admin_cambiar_estado():
 @login_required
 def admin_eliminar_turno():
     id_turno = request.form.get("id_turno")
-
     exito = ticket_controller.eliminar_turno_admin(id_turno)
     if exito:
         flash(f"Turno #{id_turno} marcado como 'cancelado'.", "success")
     else:
         flash("Error al cancelar el turno.", "error")
 
-    # Mantenemos la vista actual después de la acción
     vista = request.args.get("vista", "activos")
     return redirect(url_for('admin_turnos_get', vista=vista))
 
 
-# --- INICIO DE NUEVAS RUTAS (REQ 4) ---
-
 @app.get("/admin/turnos/crear")
 @login_required
 def admin_crear_get():
-    """ Muestra el formulario para que el admin cree un turno. """
     municipios = ticket_controller.obtener_municipios()
     niveles = ticket_controller.obtener_niveles()
     asuntos = ticket_controller.obtener_asuntos()
-    # Reutilizamos los mismos catálogos que la vista pública
     return render_template("admin_crear_turno.html",
                            municipios=municipios,
                            niveles=niveles,
@@ -178,7 +167,6 @@ def admin_crear_get():
 @app.post("/admin/turnos/crear")
 @login_required
 def admin_crear_post():
-    """ Procesa el formulario de creación del admin. """
     datos_formulario = request.form
     nuevo_turno = ticket_controller.crear_turno(datos_formulario)
     if nuevo_turno:
@@ -186,22 +174,19 @@ def admin_crear_post():
         return redirect(url_for('admin_turnos_get'))
     else:
         flash("Error al crear el turno. Verifique los datos.", "error")
-        # Recargamos la página de creación para que el admin corrija
         return redirect(url_for('admin_crear_get'))
 
 
 @app.get("/admin/turnos/editar/<int:id_turno>")
 @login_required
 def admin_editar_get(id_turno):
-    """ Muestra el formulario para editar un turno específico. """
-    # Usamos el nuevo método del controlador que busca por ID
     data = ticket_controller.buscar_turno_admin_para_editar(id_turno)
 
     if data:
         return render_template("admin_editar_turno.html",
                                ticket=data['ticket'],
                                catalogos=data['catalogos'],
-                               vista=request.args.get("vista", "activos"))  # Pasamos la vista
+                               vista=request.args.get("vista", "activos"))
     else:
         flash("Ticket no encontrado.", 'error')
         return redirect(url_for('admin_turnos_get'))
@@ -210,39 +195,44 @@ def admin_editar_get(id_turno):
 @app.post("/admin/turnos/editar")
 @login_required
 def admin_editar_post():
-    """ Guarda los cambios del formulario de edición del admin. """
-    # Reutilizamos la lógica de actualización
     exito = ticket_controller.actualizar_turno(request.form)
     if exito:
         flash("¡Ticket actualizado con éxito!", 'success')
     else:
         flash("Error al actualizar el ticket. Intente de nuevo.", 'error')
 
-    # Mantenemos la vista actual después de la acción
     vista = request.form.get("vista", "activos")
     return redirect(url_for('admin_turnos_get', vista=vista))
 
 
-# --- FIN DE NUEVAS RUTAS (REQ 4) ---
+# ---------------------------
+# RUTA API PARA DASHBOARD
+# ---------------------------
+@app.get("/admin/dashboard/stats")
+@login_required
+def admin_dashboard_stats():
+    """ API endpoint para los datos del dashboard. """
+    datos = ticket_controller.get_stats_dashboard()
+    if datos:
+        return jsonify(datos)
+    else:
+        return jsonify({"error": "No se pudieron cargar las estadísticas"}), 500
 
 
 # ---------------------------
-# RUTAS CRUD CATÁLOGOS (REQ 5)
+# RUTAS CRUD CATÁLOGOS
 # ---------------------------
 
 @app.get("/admin/catalogos")
 @login_required
 def admin_catalogos_menu():
-    """ Muestra el menú principal de catálogos. """
     return render_template("admin_catalogos_menu.html")
 
 
 # --- RUTAS PARA MUNICIPIOS ---
-
 @app.get("/admin/catalogos/municipios")
 @login_required
 def admin_municipios_get():
-    """ Muestra la lista de municipios (Leer). """
     municipios = catalogo_controller.get_municipios()
     return render_template("admin_cat_municipios.html", municipios=municipios)
 
@@ -250,7 +240,6 @@ def admin_municipios_get():
 @app.post("/admin/catalogos/municipios/crear")
 @login_required
 def admin_municipios_crear():
-    """ Procesa la creación de un nuevo municipio (Crear). """
     nombre = request.form.get("nombre")
     exito, mensaje = catalogo_controller.crear_municipio(nombre)
     flash(mensaje, "success" if exito else "error")
@@ -260,7 +249,6 @@ def admin_municipios_crear():
 @app.get("/admin/catalogos/municipios/editar/<int:id_municipio>")
 @login_required
 def admin_municipios_editar_get(id_municipio):
-    """ Muestra el formulario para editar un municipio. """
     municipio = catalogo_controller.get_municipio_by_id(id_municipio)
     if not municipio:
         flash("Municipio no encontrado.", "error")
@@ -271,7 +259,6 @@ def admin_municipios_editar_get(id_municipio):
 @app.post("/admin/catalogos/municipios/editar")
 @login_required
 def admin_municipios_editar_post():
-    """ Procesa la actualización de un municipio (Actualizar). """
     id_municipio = request.form.get("id_municipio")
     nombre = request.form.get("nombre")
     exito, mensaje = catalogo_controller.actualizar_municipio(id_municipio, nombre)
@@ -282,14 +269,199 @@ def admin_municipios_editar_post():
 @app.post("/admin/catalogos/municipios/eliminar")
 @login_required
 def admin_municipios_eliminar():
-    """ Procesa la eliminación de un municipio (Eliminar). """
     id_municipio = request.form.get("id_municipio")
     exito, mensaje = catalogo_controller.eliminar_municipio(id_municipio)
     flash(mensaje, "success" if exito else "error")
     return redirect(url_for('admin_municipios_get'))
 
 
-# --- Aquí irán las rutas para Asuntos, Niveles y Oficinas ---
+# --- RUTAS PARA NIVELES EDUCATIVOS ---
+@app.get("/admin/catalogos/niveles")
+@login_required
+def admin_niveles_get():
+    niveles = catalogo_controller.get_niveles()
+    return render_template("admin_cat_niveles.html", niveles=niveles)
+
+
+@app.post("/admin/catalogos/niveles/crear")
+@login_required
+def admin_niveles_crear():
+    nombre = request.form.get("nombre")
+    exito, mensaje = catalogo_controller.crear_nivel(nombre)
+    flash(mensaje, "success" if exito else "error")
+    return redirect(url_for('admin_niveles_get'))
+
+
+@app.get("/admin/catalogos/niveles/editar/<int:id_nivel>")
+@login_required
+def admin_niveles_editar_get(id_nivel):
+    nivel = catalogo_controller.get_nivel_by_id(id_nivel)
+    if not nivel:
+        flash("Nivel no encontrado.", "error")
+        return redirect(url_for('admin_niveles_get'))
+    return render_template("admin_cat_nivel_editar.html", nivel=nivel)
+
+
+@app.post("/admin/catalogos/niveles/editar")
+@login_required
+def admin_niveles_editar_post():
+    id_nivel = request.form.get("id_nivel")
+    nombre = request.form.get("nombre")
+    exito, mensaje = catalogo_controller.actualizar_nivel(id_nivel, nombre)
+    flash(mensaje, "success" if exito else "error")
+    return redirect(url_for('admin_niveles_get'))
+
+
+@app.post("/admin/catalogos/niveles/eliminar")
+@login_required
+def admin_niveles_eliminar():
+    id_nivel = request.form.get("id_nivel")
+    exito, mensaje = catalogo_controller.eliminar_nivel(id_nivel)
+    flash(mensaje, "success" if exito else "error")
+    return redirect(url_for('admin_niveles_get'))
+
+
+# --- RUTAS PARA ASUNTOS ---
+@app.get("/admin/catalogos/asuntos")
+@login_required
+def admin_asuntos_get():
+    asuntos = catalogo_controller.get_asuntos()
+    return render_template("admin_cat_asuntos.html", asuntos=asuntos)
+
+
+@app.post("/admin/catalogos/asuntos/crear")
+@login_required
+def admin_asuntos_crear():
+    descripcion = request.form.get("descripcion")
+    exito, mensaje = catalogo_controller.crear_asunto(descripcion)
+    flash(mensaje, "success" if exito else "error")
+    return redirect(url_for('admin_asuntos_get'))
+
+
+@app.get("/admin/catalogos/asuntos/editar/<int:id_asunto>")
+@login_required
+def admin_asuntos_editar_get(id_asunto):
+    asunto = catalogo_controller.get_asunto_by_id(id_asunto)
+    if not asunto:
+        flash("Asunto no encontrado.", "error")
+        return redirect(url_for('admin_asuntos_get'))
+    return render_template("admin_cat_asunto_editar.html", asunto=asunto)
+
+
+@app.post("/admin/catalogos/asuntos/editar")
+@login_required
+def admin_asuntos_editar_post():
+    id_asunto = request.form.get("id_asunto")
+    descripcion = request.form.get("descripcion")
+    exito, mensaje = catalogo_controller.actualizar_asunto(id_asunto, descripcion)
+    flash(mensaje, "success" if exito else "error")
+    return redirect(url_for('admin_asuntos_get'))
+
+
+@app.post("/admin/catalogos/asuntos/eliminar")
+@login_required
+def admin_asuntos_eliminar():
+    id_asunto = request.form.get("id_asunto")
+    exito, mensaje = catalogo_controller.eliminar_asunto(id_asunto)
+    flash(mensaje, "success" if exito else "error")
+    return redirect(url_for('admin_asuntos_get'))
+
+
+# --- RUTAS PARA OFICINAS REGIONALES ---
+@app.get("/admin/catalogos/oficinas")
+@login_required
+def admin_oficinas_get():
+    oficinas = catalogo_controller.get_oficinas()
+    municipios = catalogo_controller.get_municipios()
+    return render_template("admin_cat_oficinas.html", oficinas=oficinas, municipios=municipios)
+
+
+@app.post("/admin/catalogos/oficinas/crear")
+@login_required
+def admin_oficinas_crear():
+    nombre = request.form.get("nombre")
+    id_municipio = request.form.get("id_municipio")
+    exito, mensaje = catalogo_controller.crear_oficina(nombre, id_municipio)
+    flash(mensaje, "success" if exito else "error")
+    return redirect(url_for('admin_oficinas_get'))
+
+
+@app.get("/admin/catalogos/oficinas/editar/<int:id_oficina>")
+@login_required
+def admin_oficinas_editar_get(id_oficina):
+    oficina = catalogo_controller.get_oficina_by_id(id_oficina)
+    if not oficina:
+        flash("Oficina no encontrada.", "error")
+        return redirect(url_for('admin_oficinas_get'))
+    municipios = catalogo_controller.get_municipios()
+    return render_template("admin_cat_oficina_editar.html", oficina=oficina, municipios=municipios)
+
+
+@app.post("/admin/catalogos/oficinas/editar")
+@login_required
+def admin_oficinas_editar_post():
+    id_oficina = request.form.get("id_oficina")
+    nombre = request.form.get("nombre")
+    id_municipio = request.form.get("id_municipio")
+    exito, mensaje = catalogo_controller.actualizar_oficina(id_oficina, nombre, id_municipio)
+    flash(mensaje, "success" if exito else "error")
+    return redirect(url_for('admin_oficinas_get'))
+
+
+@app.post("/admin/catalogos/oficinas/eliminar")
+@login_required
+def admin_oficinas_eliminar():
+    id_oficina = request.form.get("id_oficina")
+    exito, mensaje = catalogo_controller.eliminar_oficina(id_oficina)
+    flash(mensaje, "success" if exito else "error")
+    return redirect(url_for('admin_oficinas_get'))
+
+
+# --- RUTAS PARA HORARIOS (NUEVO) ---
+@app.get("/admin/catalogos/horarios")
+@login_required
+def admin_horarios_get():
+    horarios = catalogo_controller.get_horarios()
+    # También pasamos las oficinas para el dropdown del formulario de creación
+    oficinas = catalogo_controller.get_oficinas()
+    return render_template("admin_cat_horarios.html", horarios=horarios, oficinas=oficinas)
+
+
+@app.post("/admin/catalogos/horarios/crear")
+@login_required
+def admin_horarios_crear():
+    exito, mensaje = catalogo_controller.crear_horario(request.form)
+    flash(mensaje, "success" if exito else "error")
+    return redirect(url_for('admin_horarios_get'))
+
+
+@app.get("/admin/catalogos/horarios/editar/<int:id_horario>")
+@login_required
+def admin_horarios_editar_get(id_horario):
+    horario = catalogo_controller.get_horario_by_id(id_horario)
+    if not horario:
+        flash("Horario no encontrado.", "error")
+        return redirect(url_for('admin_horarios_get'))
+    # Pasamos las oficinas para el dropdown
+    oficinas = catalogo_controller.get_oficinas()
+    return render_template("admin_cat_horario_editar.html", horario=horario, oficinas=oficinas)
+
+
+@app.post("/admin/catalogos/horarios/editar")
+@login_required
+def admin_horarios_editar_post():
+    exito, mensaje = catalogo_controller.actualizar_horario(request.form)
+    flash(mensaje, "success" if exito else "error")
+    return redirect(url_for('admin_horarios_get'))
+
+
+@app.post("/admin/catalogos/horarios/eliminar")
+@login_required
+def admin_horarios_eliminar():
+    id_horario = request.form.get("id_horario")
+    exito, mensaje = catalogo_controller.eliminar_horario(id_horario)
+    flash(mensaje, "success" if exito else "error")
+    return redirect(url_for('admin_horarios_get'))
 
 
 # ---------------------------
@@ -320,17 +492,18 @@ def crear_post():
                                turno=nuevo_turno,
                                solicitante=nuevo_turno.solicitante)
     else:
-        return "Error al crear el turno.", 500
+        flash("Error al crear el turno. Verifique sus datos o intente más tarde.", "error")
+        return redirect(url_for('crear_get'))
 
 
 @app.get("/ver")
 def ver_get():
-    turno = request.args.get("turno")
+    turno_num = request.args.get("turno")
     curp = request.args.get("curp")
     ticket_encontrado = None
     mensaje_error = None
-    if turno and curp:
-        ticket_encontrado = ticket_controller.buscar_turno(turno, curp)
+    if turno_num and curp:
+        ticket_encontrado = ticket_controller.buscar_turno(turno_num, curp)
         if not ticket_encontrado:
             mensaje_error = "No se encontró ningún ticket con esa CURP y número de turno."
     return render_template("verTicket.html",
@@ -376,9 +549,22 @@ def eliminar_get():
 @app.post("/eliminar")
 def eliminar_post():
     turno = request.form.get("turnoEliminar")
-    exito = True  # Simulado
-    mensaje = f"Ticket {turno} eliminado correctamente ✅" if exito else f"Error al eliminar ticket {turno}"
-    return render_template("eliminarTicket.html", mensaje_eliminar=mensaje)
+    curp = request.form.get("curpEliminar")
+
+    if not turno or not curp:
+        flash("Debe proporcionar tanto el número de turno como la CURP.", "error")
+        return redirect(url_for('eliminar_get'))
+
+    # Llamamos al nuevo método del controlador
+    exito = ticket_controller.eliminar_turno_publico(turno, curp)
+
+    if exito:
+        flash(f"El Ticket #{turno} ha sido cancelado exitosamente.", "success")
+    else:
+        flash("No se pudo cancelar el ticket. Verifique que los datos sean correctos y que el ticket esté 'Pendiente'.",
+              "error")
+
+    return redirect(url_for('eliminar_get'))
 
 
 # ---------------------------
@@ -389,12 +575,16 @@ def api_oficinas():
     id_municipio = request.args.get("id_municipio", type=int)
     if not id_municipio:
         return jsonify([])
+
     oficinas = ticket_controller.obtener_oficinas_por_municipio(id_municipio)
-    return jsonify(oficinas)
+    oficinas_json = [
+        {'id_oficina': o.id_oficina, 'oficina': o.oficina} for o in oficinas
+    ]
+    return jsonify(oficinas_json)
 
 
 # ---------------------------
-# RUTA DE PDF (AHORA USA REPORTLAB)
+# RUTA DE PDF
 # ---------------------------
 @app.get("/ticket/pdf/<int:id_turno>/<string:curp>")
 def generar_pdf(id_turno, curp):
@@ -403,11 +593,7 @@ def generar_pdf(id_turno, curp):
     if not datos:
         return "Error: Ticket no encontrado o datos incorrectos.", 404
 
-    # --- INICIO DE LA MODIFICACIÓN ---
-    # Quitamos el try...except para ver el error real
-    # y llamamos a la nueva función
     pdf_bytes = crear_comprobante_rl(datos)
-    # --- FIN DE LA MODIFICACIÓN ---
 
     return Response(
         pdf_bytes,
@@ -419,11 +605,12 @@ def generar_pdf(id_turno, curp):
 
 
 # ---------------------------
-# Raíz
+# Raíz (¡MODIFICADA!)
 # ---------------------------
 @app.get("/")
 def root():
-    return render_template("index.html")
+    # Redirigimos a la nueva página de inicio en lugar de renderizar index.html
+    return redirect(url_for('inicio'))
 
 
 if __name__ == "__main__":

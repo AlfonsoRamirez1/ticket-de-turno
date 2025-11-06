@@ -1,22 +1,18 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Crear Nuevo Turno (Admin)</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket.css') }}">
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  </head>
-<body>
-  <div class="container">
-    <header class="top-header">
-      <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo Institución 1">
-      <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Logo Institución 2">
-    </header>
+{% extends "base_admin.html" %}
 
-    <h1>Crear Nuevo Turno (Admin)</h1>
+{% block title %}Crear Nuevo Turno (Admin){% endblock %}
 
-    <form id="formTurno" method="POST" action="{{ url_for('admin_crear_post') }}">
-      <div class="form-group">
+{% block content %}
+  <header class="top-header">
+    <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo Institución 1">
+    <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Logo Institución 2">
+  </header>
+
+  <h1 class="public-title">Crear Nuevo Turno (Admin)</h1>
+
+  <form id="formTurno" method="POST" action="{{ url_for('admin_crear_post') }}">
+    <!-- ... (Form fields) ... -->
+    <div class="form-group">
         <div class="form-grid">
           <div class="form-field field-4">
             <label for="nombreCompleto">Nombre completo de quien realizará el trámite:</label>
@@ -128,20 +124,17 @@
           </div>
         </div>
       </div>
+    <!-- ... (End of form fields) ... -->
+    <div class="form-actions">
+      <button type="submit">Generar Turno</button>
+    </div>
+    <div class="form-actions">
+      <button type="button" id="btnRegresar" class="btn-secondary" onclick="window.location.href='{{ url_for('admin_turnos_get') }}'">Regresar</button>
+    </div>
+  </form>
+{% endblock %}
 
-      <div class="form-group">
-       <div class="form-actions">
-        <button type="submit" >Generar Turno</button>
-      </div>
-
-      <div class="form-actions">
-        <button type="button" id="btnRegresar" onclick="window.location.href='{{ url_for('admin_turnos_get') }}'">Regresar</button>
-      </div>
-
-    </form>
-  </div>
-
+{% block scripts %}
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="{{ url_for('static', filename='js/validador.js', v=cache_buster) }}"></script>
-
-</body>
-</html>
+{% endblock %}

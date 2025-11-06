@@ -1,233 +1,108 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Administrar Turnos</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket.css') }}">
-  <style>
-    /* Estilos para la tabla de admin */
-    .container {
-      max-width: 1200px;
-    }
-    .admin-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      margin-bottom: 15px;
-      border-bottom: 2px solid #eee;
-    }
-    .admin-nav h1 { margin: 0; }
+{% extends "base_admin.html" %}
 
-    .admin-nav .nav-buttons {
-      display: flex;
-      gap: 15px;
-      align-items: center; /* Alinear botones */
-    }
-    .admin-nav a {
-      text-decoration: none;
-      background: #555;
-      color: white;
-      padding: 8px 15px;
-      border-radius: 4px;
-      font-size: 1rem;
-      font-weight: 500;
-      display: inline-block; /* Para alinear bien */
-    }
-    .btn-crear {
-      background-color: #0078d7;
-    }
-    .btn-crear:hover {
-      background-color: #005fa3;
-    }
+{% block title %}Administrar Turnos{% endblock %}
 
-    /* --- INICIO DE NUEVOS ESTILOS --- */
-    .btn-vista {
-      background-color: #6c757d;
-    }
-    .btn-vista:hover {
-      background-color: #5a6268;
-    }
-    /* Estilo para el título de la vista activa */
-    .vista-titulo {
-      font-size: 1.2rem;
-      color: #333;
-      margin: 0;
-    }
-    /* --- FIN DE NUEVOS ESTILOS --- */
+{% block content %}
+  <div class="admin-nav">
+    <h1>Panel de Administración - Turnos</h1>
+    <div class="nav-buttons">
+      <a href="{{ url_for('admin_crear_get') }}" class="btn-crear">Crear Nuevo Turno</a>
 
-    .search-form {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .search-form .text-box {
-      flex-grow: 1;
-      max-width: 400px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: left;
-      font-size: 0.9rem;
-      vertical-align: middle;
-    }
-    th {
-      background-color: #f4f4f4;
-    }
-    .estado-pendiente { color: #d9534f; font-weight: bold; }
-    .estado-resuelto { color: #5cb85c; font-weight: bold; }
-    .estado-cancelado { color: #777; text-decoration: line-through; }
-
-    .action-buttons form,
-    .action-buttons a {
-      display: inline-block;
-      margin: 2px 0;
-    }
-    .action-buttons button,
-    .action-buttons a.btn-editar {
-      padding: 5px 10px;
-      font-size: 0.85rem;
-      border-radius: 4px;
-      border: none;
-      color: white;
-      cursor: pointer;
-    }
-    .btn-resolver { background-color: #5cb85c; }
-    .btn-pendiente { background-color: #f0ad4e; }
-    .btn-eliminar { background-color: #d9534f; }
-
-    .btn-editar {
-      background-color: #0078d7;
-      text-decoration: none;
-      font-family: Arial, sans-serif; /* Asegurar consistencia */
-    }
-    .btn-editar:hover {
-      background-color: #005fa3;
-    }
-
-    /* Estilos para Mensajes Flash */
-    .alert-success {
-      background: #e6f4ea; border: 1px solid #b5e0c1; color: #2e7d32;
-      padding: 15px; margin-bottom: 15px; border-radius: 6px;
-    }
-    .alert-error {
-      background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24;
-      padding: 15px; margin-bottom: 15px; border-radius: 6px;
-    }
-
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="admin-nav">
-      <h1>Panel de Administración - Turnos</h1>
-      <div class="nav-buttons">
-        <a href="{{ url_for('admin_crear_get') }}" class="btn-crear">Crear Nuevo Turno</a>
-
-        {% if vista == 'activos' %}
-          <a href="{{ url_for('admin_turnos_get', vista='cancelados', q=query) }}" class="btn-vista">Ver Cancelados</a>
-        {% else %}
-          <a href="{{ url_for('admin_turnos_get', vista='activos', q=query) }}" class="btn-vista">Ver Activos</a>
-        {% endif %}
-        <a href="{{ url_for('admin_dashboard') }}">Volver al Dashboard</a>
-      </div>
-    </div>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert-{{ category }}">{{ message }}</div>
-        {% endfor %}
+      {% if vista == 'activos' %}
+        <a href="{{ url_for('admin_turnos_get', vista='cancelados', q=query) }}" class="btn-vista">Ver Cancelados</a>
+      {% else %}
+        <a href="{{ url_for('admin_turnos_get', vista='activos', q=query) }}" class="btn-vista">Ver Activos</a>
       {% endif %}
-    {% endwith %}
-
-    {% if vista == 'cancelados' %}
-      <h2 class="vista-titulo">Mostrando Turnos Cancelados</h2>
-    {% else %}
-      <h2 class="vista-titulo">Mostrando Turnos Activos</h2>
-    {% endif %}
-    <form class="search-form" method="GET" action="{{ url_for('admin_turnos_get') }}">
-
-      <input type="hidden" name="vista" value="{{ vista }}">
-      <input type="search" name="q" class="text-box"
-             placeholder="Buscar por CURP o Nombre del Alumno..." value="{{ query }}">
-      <button type="submit">Buscar</button>
-    </form>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Turno</th>
-          <th>Nombre Alumno</th>
-          <th>CURP</th>
-          <th>Oficina</th>
-          <th>Fecha</th>
-          <th>Estado</th>
-          {% if vista != 'cancelados' %}
-            <th>Acciones</th>
-          {% endif %}
-          </tr>
-      </thead>
-      <tbody>
-        {% for turno in turnos %}
-          <tr>
-            <td>{{ turno.numero_turno }}</td>
-            <td>{{ turno.nombre_solicitante }}</td>
-            <td>{{ turno.curp }}</td>
-            <td>{{ turno.oficina }}</td>
-            <td>{{ turno.fecha_solicitud.strftime('%Y-%m-%d') }}</td>
-            <td>
-              <span class="estado-{{ turno.estado }}">{{ turno.estado|capitalize }}</span>
-            </td>
-
-            {% if vista != 'cancelados' %}
-              <td class="action-buttons">
-
-                <a href="{{ url_for('admin_editar_get', id_turno=turno.id_turno, vista=vista) }}" class="btn-editar">Editar</a>
-
-                {% if turno.estado == 'pendiente' %}
-                  <form method="POST" action="{{ url_for('admin_cambiar_estado', vista=vista) }}">
-                    <input type="hidden" name="id_turno" value="{{ turno.id_turno }}">
-                    <input type="hidden" name="nuevo_estado" value="resuelto">
-                    <button type="submit" class="btn-resolver">Marcar Resuelto</button>
-                  </form>
-                {% endif %}
-
-                {% if turno.estado == 'resuelto' %}
-                  <form method="POST" action="{{ url_for('admin_cambiar_estado', vista=vista) }}">
-                    <input type="hidden" name="id_turno" value="{{ turno.id_turno }}">
-                    <input type="hidden" name="nuevo_estado" value="pendiente">
-                    <button type="submit" class="btn-pendiente">Marcar Pendiente</button>
-                  </form>
-                {% endif %}
-
-                {% if turno.estado != 'cancelado' %}
-                  <form method="POST" action="{{ url_for('admin_eliminar_turno', vista=vista) }}">
-                    <input type="hidden" name="id_turno" value="{{ turno.id_turno }}">
-                    <button type="submit" class="btn-eliminar"
-                            onclick="return confirm('¿Está seguro que desea cancelar este turno?')">
-                      Cancelar
-                    </button>
-                  </form>
-                {% endif %}
-              </td>
-            {% endif %}
-            </tr>
-        {% else %}
-          <tr>
-            <td colspan="{% if vista != 'cancelados' %}7{% else %}6{% endif %}" style="text-align: center;">
-              No se encontraron turnos con esos criterios.
-            </td>
-            </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+      <a href="{{ url_for('admin_dashboard') }}">Volver al Dashboard</a>
+    </div>
   </div>
-</body>
-</html>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% if vista == 'cancelados' %}
+    <h2 class="vista-titulo">Mostrando Turnos Cancelados</h2>
+  {% else %}
+    <h2 class="vista-titulo">Mostrando Turnos Activos</h2>
+  {% endif %}
+
+  <form class="search-form" method="GET" action="{{ url_for('admin_turnos_get') }}">
+    <input type="hidden" name="vista" value="{{ vista }}">
+    <input type="search" name="q" class="text-box"
+           placeholder="Buscar por CURP o Nombre del Alumno..." value="{{ query }}">
+    <button type="submit">Buscar</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Turno</th>
+        <th>Nombre Alumno</th>
+        <th>CURP</th>
+        <th>Oficina</th>
+        <th>Fecha</th>
+        <th>Estado</th>
+        {% if vista != 'cancelados' %}
+          <th>Acciones</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for turno in turnos %}
+        <tr>
+          <td data-label="Turno">{{ turno.numero_turno }}</td>
+          <td data-label="Nombre Alumno">{{ turno.solicitante.nombre_solicitante }} {{ turno.solicitante.paterno_solicitante }}</td>
+          <td data-label="CURP">{{ turno.solicitante.curp }}</td>
+          <td data-label="Oficina">{{ turno.oficina.oficina }}</td>
+          <td data-label="Fecha">{{ turno.fecha_solicitud.strftime('%Y-%m-%d') }}</td>
+          <td data-label="Estado">
+            <span class="estado-{{ turno.estado }}">{{ turno.estado|capitalize }}</span>
+          </td>
+
+          {% if vista != 'cancelados' %}
+            <td class="action-buttons" data-label="Acciones">
+              <a href="{{ url_for('admin_editar_get', id_turno=turno.id_turno, vista=vista) }}" class="btn-editar">Editar</a>
+
+              {% if turno.estado == 'pendiente' %}
+                <form method="POST" action="{{ url_for('admin_cambiar_estado', vista=vista) }}">
+                  <input type="hidden" name="id_turno" value="{{ turno.id_turno }}">
+                  <input type="hidden" name="nuevo_estado" value="resuelto">
+                  <button type="submit" class="btn-resolver">Marcar Resuelto</button>
+                </form>
+              {% endif %}
+
+              {% if turno.estado == 'resuelto' %}
+                <form method="POST" action="{{ url_for('admin_cambiar_estado', vista=vista) }}">
+                  <input type="hidden" name="id_turno" value="{{ turno.id_turno }}">
+                  <input type="hidden" name="nuevo_estado" value="pendiente">
+                  <button type="submit" class="btn-pendiente">Marcar Pendiente</button>
+                </form>
+              {% endif %}
+
+              {% if turno.estado != 'cancelado' %}
+                <form method="POST" action="{{ url_for('admin_eliminar_turno', vista=vista) }}">
+                  <input type="hidden" name="id_turno" value="{{ turno.id_turno }}">
+                  <button type="submit" class="btn-eliminar"
+                          onclick="return confirm('¿Está seguro que desea cancelar este turno?')">
+                    Cancelar
+                  </button>
+                </form>
+              {% endif %}
+            </td>
+          {% endif %}
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="{% if vista != 'cancelados' %}7{% else %}6{% endif %}" style="text-align: center;">
+            No se encontraron turnos con esos criterios.
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

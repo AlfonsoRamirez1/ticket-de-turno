@@ -1,48 +1,47 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Administrar Catálogos</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket.css') }}">
-</head>
-<body>
-  <div class="container" style="max-width: 800px;">
-    <h1>Administrar Catálogos</h1>
-    <p>Seleccione el catálogo que desea gestionar.</p>
+{% extends "base_admin.html" %}
 
-    <div class="dashboard-menu" style="flex-direction: column; gap: 15px;">
+{% block title %}Administrar Catálogos{% endblock %}
 
-      <div class="form-actions">
-        <button type="button" onclick="window.location.href='{{ url_for('admin_municipios_get') }}'">
-          Gestionar Municipios
-        </button>
-      </div>
+{% block content %}
+  <h1>Administrar Catálogos</h1>
+  <p>Seleccione el catálogo que desea gestionar.</p>
 
-      <div class="form-actions">
-        <button type="button" onclick="alert('Próximamente!')" style="background-color: #777;" disabled>
-          Gestionar Asuntos
-        </button>
-      </div>
+  <div class="dashboard-menu" style="flex-direction: column; gap: 15px;">
 
-      <div class="form-actions">
-        <button type="button" onclick="alert('Próximamente!')" style="background-color: #777;" disabled>
-          Gestionar Niveles Educativos
-        </button>
-      </div>
+    <div class="form-actions">
+      <button type="button" onclick="window.location.href='{{ url_for('admin_municipios_get') }}'">
+        Gestionar Municipios
+      </button>
+    </div>
 
-      <div class="form-actions">
-        <button type="button" onclick="alert('Próximamente!')" style="background-color: #777;" disabled>
-          Gestionar Oficinas Regionales
-        </button>
-      </div>
+    <div class="form-actions">
+      <button type="button" onclick="window.location.href='{{ url_for('admin_asuntos_get') }}'">
+        Gestionar Asuntos
+      </button>
+    </div>
 
-      <div class="form-actions" style="margin-top: 30px;">
-        <button type="button" style="background-color: #555;"
-                onclick="window.location.href='{{ url_for('admin_dashboard') }}'">
-          Volver al Dashboard
-        </button>
-      </div>
+    <div class="form-actions">
+      <button type="button" onclick="window.location.href='{{ url_for('admin_niveles_get') }}'">
+        Gestionar Niveles Educativos
+      </button>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" onclick="window.location.href='{{ url_for('admin_oficinas_get') }}'">
+        Gestionar Oficinas Regionales
+      </button>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" onclick="window.location.href='{{ url_for('admin_horarios_get') }}'">
+        Gestionar Horarios de Atención
+      </button>
+    </div>
+    <div class="form-actions" style="margin-top: 30px;">
+      <button type="button" class="btn-secondary"
+              onclick="window.location.href='{{ url_for('admin_dashboard') }}'">
+        Volver al Dashboard
+      </button>
     </div>
   </div>
-</body>
-</html>
+{% endblock %}

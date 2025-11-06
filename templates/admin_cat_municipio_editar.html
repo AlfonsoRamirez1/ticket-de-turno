@@ -1,39 +1,32 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Editar Municipio</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_turnos.css') }}">
-</head>
-<body>
-  <div class="container" style="max-width: 600px;">
-    <div class="admin-nav">
-      <h1>Editar Municipio</h1>
+{% extends "base_admin.html" %}
+
+{% block title %}Editar Municipio{% endblock %}
+
+{% block content %}
+  <div class="admin-nav">
+    <h1>Editar Municipio</h1>
+  </div>
+
+  <form id="formEditar" method="POST" action="{{ url_for('admin_municipios_editar_post') }}" style="margin-top: 20px;">
+
+    <input type="hidden" name="id_municipio" value="{{ municipio.id_municipio }}">
+
+    <div class="form-group">
+      <div class="form-field">
+        <label for="nombre">Nombre del Municipio:</label>
+        <input type="text" id="nombre" name="nombre" class="text-box"
+               value="{{ municipio.municipio }}" required>
+      </div>
     </div>
 
-    <form id="formEditar" method="POST" action="{{ url_for('admin_municipios_editar_post') }}" style="margin-top: 20px;">
-
-      <input type="hidden" name="id_municipio" value="{{ municipio.id_municipio }}">
-
-      <div class="form-group">
-        <div class="form-field">
-          <label for="nombre">Nombre del Municipio:</label>
-          <input type="text" id="nombre" name="nombre" class="text-box"
-                 value="{{ municipio.municipio }}" required>
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit">Guardar Cambios</button>
-      </div>
-      <div class="form-actions">
-        <button type="button" style="background-color: #777;"
-                onclick="window.location.href='{{ url_for('admin_municipios_get') }}'">
-          Cancelar
-        </button>
-      </div>
-    </form>
-  </div>
-</body>
-</html>
+    <div class="form-actions">
+      <button type="submit">Guardar Cambios</button>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn-secondary"
+              onclick="window.location.href='{{ url_for('admin_municipios_get') }}'">
+        Cancelar
+      </button>
+    </div>
+  </form>
+{% endblock %}

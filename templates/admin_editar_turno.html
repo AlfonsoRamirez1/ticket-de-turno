@@ -1,21 +1,16 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Editando Ticket #{{ ticket.numero_turno }} (Admin)</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket.css') }}">
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.20.0/dist/jquery.validate.min.js"></script>
-</head>
-<body>
-  <div class="container">
-    <h1>Editando Ticket #{{ ticket.numero_turno }} (Admin)</h1>
+{% extends "base_admin.html" %}
 
-    <form id="formTurno" method="POST" action="{{ url_for('admin_editar_post') }}">
-      <input type="hidden" name="id_solicitante" value="{{ ticket.id_solicitante }}">
-      <input type="hidden" name="id_turno" value="{{ ticket.id_turno }}">
+{% block title %}Editando Ticket #{{ ticket.numero_turno }} (Admin){% endblock %}
 
-      <div class="form-group">
+{% block content %}
+  <h1 class="public-title">Editando Ticket #{{ ticket.numero_turno }} (Admin)</h1>
+
+  <form id="formTurno" method="POST" action="{{ url_for('admin_editar_post') }}">
+    <input type="hidden" name="id_solicitante" value="{{ ticket.id_solicitante }}">
+    <input type="hidden" name="id_turno" value="{{ ticket.id_turno }}">
+
+    <!-- ... (Form fields) ... -->
+    <div class="form-group">
         <div class="form-grid">
           <div class="form-field field-4">
             <label for="nombreCompleto">Nombre completo de quien realizará el trámite:</label>
@@ -131,21 +126,21 @@
           <span class="error-message"></span>
         </div>
       </div>
+    <!-- ... (End of form fields) ... -->
+    <div class="form-actions">
+      <button type="submit">Guardar Cambios</button>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" onclick="window.location.href='{{ url_for('admin_turnos_get') }}'">Cancelar</button>
+    </div>
+  </form>
+{% endblock %}
 
-      <div class="form-actions">
-        <button type="submit">Guardar Cambios</button>
-      </div>
-      <div class="form-actions">
-        <button type="button" onclick="window.location.href='{{ url_for('admin_turnos_get') }}'">Cancelar</button>
-      </div>
-    </form>
-  </div>
-
+{% block scripts %}
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.20.0/dist/jquery.validate.min.js"></script>
   <script>
-  // Script para actualizar las oficinas cuando cambia el municipio
-  // (Exactamente igual que en CrearTicket.html)
   $(document).ready(function() {
-
     // Guardamos la oficina seleccionada actualmente
     const idOficinaActual = "{{ ticket.id_oficina }}";
 
@@ -166,25 +161,38 @@
              return;
           }
           $oficinaSelect.prop('disabled', false).html('<option value="">Seleccione oficina</option>');
+          let found = false;
           oficinas.forEach(function(oficina) {
-            // Creamos la opción
             const $option = $('<option>', {
               value: oficina.id_oficina, text: oficina.oficina
             });
-
-            // Si esta es la oficina que estaba guardada, la pre-seleccionamos
             if(oficina.id_oficina == idOficinaActual) {
                 $option.prop('selected', true);
+                found = true;
             }
-
             $oficinaSelect.append($option);
           });
+          // Si la oficina actual no estaba en la lista, la agregamos
+          if (!found && idOficinaActual) {
+              $.getJSON(`{{ url_for('api_oficinas') }}`)
+                .done(function(todas) {
+                    const actual = todas.find(o => o.id_oficina == idOficinaActual);
+                    if(actual) {
+                         $oficinaSelect.append($('<option>', {
+                            value: actual.id_oficina, text: actual.oficina, selected: true
+                         }));
+                    }
+                });
+          }
         });
     });
 
-    // Validar el formulario
+    // Forzar el trigger si ya hay un municipio seleccionado al cargar
+    if($('#municipio').val()) {
+        $('#municipio').trigger('change');
+    }
+
     $("#formTurno").validate();
   });
   </script>
-</body>
-</html>
+{% endblock %}

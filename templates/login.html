@@ -3,24 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Login de Administrador</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket.css') }}">
-  <style>
-    /* Estilo para mensajes flash de error */
-    .flash-error {
-      background: #f8d7da;
-      border: 1px solid #f5c6cb;
-      color: #721c24;
-      padding: 15px;
-      border-radius: 6px;
-      font-weight: 500;
-      text-align: center;
-      margin: 20px 0;
-      font-size: 1.05rem;
-    }
-  </style>
+  <!-- Enlazamos los nuevos estilos globales y de admin -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v={{ cache_buster }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v={{ cache_buster }}">
 </head>
 <body>
-  <div class="container" style="max-width: 500px;">
+  <div class="container" style="max-width: 500px; margin-top: 50px;">
     <h1>Login de Administrador</h1>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -54,6 +42,9 @@
 
         <div class="form-actions">
             <button type="submit">Ingresar</button>
+        </div>
+         <div class="form-actions">
+            <button type="button" class="btn-secondary" onclick="window.location.href='{{ url_for('root') }}'">Volver al Inicio</button>
         </div>
     </form>
   </div>

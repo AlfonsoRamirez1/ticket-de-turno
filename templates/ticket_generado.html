@@ -2,8 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ticket Generado</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ticket.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v={{ cache_buster }}">
 </head>
 <body>
   <div class="container">
@@ -14,32 +15,36 @@
 
     <h1>🎉 Ticket Generado con Éxito</h1>
 
-    <div id="ticketInfo" style="border: 1px dashed #ccc; padding: 20px; border-radius: 8px; background: #f9f9f9;">
+    <div id="ticketInfo" style="border: 1px dashed #ccc; padding: 25px; border-radius: var(--radius); background: #f9f9f9;">
       <h3>Información de tu Turno</h3>
 
-      <p style="font-size: 1.3rem;"><strong>Turno Asignado:</strong> <span style="font-weight: bold; color: #0078d7;">{{ turno.numero_turno }}</span></p>
+      <p style="font-size: 1.5rem; font-weight: 600;"><strong>Turno (Folio):</strong> <span style="color: var(--primary-color);">{{ turno.numero_turno }}</span></p>
 
-      <hr>
-
+      <hr style="margin: 20px 0;">
+      <p style="font-size: 1.2rem;"><strong>Fecha de la Cita:</strong> <span>{{ turno.fecha_solicitud.strftime('%Y-%m-%d') }}</span></p>
+      <p style="font-size: 1.2rem;"><strong>Hora de la Cita:</strong> <span>{{ turno.hora_solicitud.strftime('%I:%M %p') }}</span></p>
+      <hr style="margin: 20px 0;">
       <p><strong>Nombre del Tramitante:</strong> <span>{{ solicitante.nombre_tramitante }}</span></p>
       <p><strong>CURP del Alumno:</strong> <span>{{ solicitante.curp }}</span></p>
-      <p><strong>Fecha de Solicitud:</strong> <span>{{ turno.fecha_solicitud.strftime('%Y-%m-%d %H:%M') }}</span></p>
 
-      <p><strong>Nivel (ID):</strong> <span>{{ turno.id_nivel }}</span></p>
-      <p><strong>Asunto (ID):</strong> <span>{{ turno.id_asunto }}</span></p>
-      <p><strong>Oficina (ID):</strong> <span>{{ turno.id_oficina }}</span></p>
+      <hr style="margin: 20px 0;">
+
+      <p><strong>Nivel:</strong> <span>{{ turno.nivel.nivel }}</span></p>
+      <p><strong>Asunto:</strong> <span>{{ turno.asunto.descripcion }}</span></p>
+      <p><strong>Oficina:</strong> <span>{{ turno.oficina.oficina }}</span></p>
     </div>
 
     <div class="form-actions">
       <a href="{{ url_for('generar_pdf', id_turno=turno.id_turno, curp=solicitante.curp) }}"
-         class="button-link"
-         style="text-decoration: none; padding: 14px 35px; background: #28a745; color: white; border-radius: 8px; font-weight: 600; font-size: 1.1rem; display: inline-block; line-height: 1.35;">
+         class="button-link btn-success"
+         target="_blank"
+         rel="noopener noreferrer">
          Descargar Comprobante (PDF)
       </a>
     </div>
 
     <div class="form-actions" style="margin-top: 10px;">
-        <button type="button" onclick="window.location.href='{{ url_for('root') }}'">Volver al Inicio</button>
+        <button type="button" class="btn-secondary" onclick="window.location.href='{{ url_for('root') }}'">Volver al Inicio</button>
     </div>
   </div>
 </body>

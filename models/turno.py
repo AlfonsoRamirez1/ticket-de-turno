@@ -12,11 +12,9 @@ class Turno:
         self.numero_turno = numero_turno
         self.id_nivel = id_nivel
         self.id_asunto = id_asunto
-        self.estado = estado  # Valor por defecto 'pendiente' [cite: 80]
-        self.codigo_qr = codigo_qr  # Lo generaremos más adelante (Req. 6)
+        self.estado = estado  
+        self.codigo_qr = codigo_qr 
         self.fecha_solicitud = fecha_solicitud or datetime.now()
-
-        # Este atributo contendrá el objeto Solicitante asociado
         self.solicitante = solicitante
 
     @staticmethod

@@ -1,65 +1,43 @@
 # controllers/auth_controller.py
-from DB.db import Database
-from models.admin import Admin
+from DB import db
+from models.db_models import Administradores
 from flask_bcrypt import Bcrypt
-
+from sqlalchemy.exc import SQLAlchemyError
 
 class AuthController:
 
     def __init__(self):
-        self.db = Database()
-        self.bcrypt = Bcrypt()  # Para comparar contraseñas
+        # bcrypt se puede inicializar sin la app
+        # se vinculará cuando la app se cree
+        self.bcrypt = Bcrypt()
 
     def validar_login(self, usuario, password_ingresada):
         """
-        Valida las credenciales del usuario.
-        Retorna un objeto Admin si es exitoso, None si falla.
+        Valida las credenciales del usuario usando el ORM.
+        Retorna un objeto Administradores si es exitoso, None si falla.
         """
-        conn = None
         try:
-            conn = self.db.conectar()
-            with conn.cursor() as cur:
-                # Busca en la tabla 'administradores'
-                sql = "SELECT * FROM administradores WHERE usuario = %s"
-                cur.execute(sql, (usuario,))
-                user_data = cur.fetchone()
+            # db.session.scalar() es la forma moderna de obtener un solo objeto
+            admin = db.session.scalar(
+                db.select(Administradores).where(Administradores.usuario == usuario)
+            )
 
-                if user_data:
-                    # Compara la contraseña hasheada de la BD
-                    # con la contraseña ingresada por el usuario
-                    password_hash = user_data['password']
-                    if self.bcrypt.check_password_hash(password_hash, password_ingresada):
-                        # ¡Éxito! Retorna un objeto Admin
-                        return Admin(**user_data)
+            if admin and self.bcrypt.check_password_hash(admin.password, password_ingresada):
+                return admin # Retorna el objeto ORM
 
             return None  # Usuario no encontrado o contraseña incorrecta
 
-        except Exception as e:
-            print(f"Error al validar login: {e}")
+        except SQLAlchemyError as e:
+            print(f"Error en BD al validar login: {e}")
             return None
-        finally:
-            if conn:
-                self.db.desconectar()
 
     def get_user_by_id(self, user_id):
         """
         Obtiene un usuario por su ID. Requerido por flask-login.
         """
-        conn = None
         try:
-            conn = self.db.conectar()
-            with conn.cursor() as cur:
-                sql = "SELECT * FROM administradores WHERE id_admin = %s"
-                cur.execute(sql, (user_id,))
-                user_data = cur.fetchone()
-
-                if user_data:
-                    return Admin(**user_data)  # Retorna objeto Admin
+            # db.session.get() es la forma más rápida de obtener por Primary Key
+            return db.session.get(Administradores, int(user_id))
+        except SQLAlchemyError as e:
+            print(f"Error en BD en get_user_by_id: {e}")
             return None
-
-        except Exception as e:
-            print(f"Error en get_user_by_id: {e}")
-            return None
-        finally:
-            if conn:
-                self.db.desconectar()
